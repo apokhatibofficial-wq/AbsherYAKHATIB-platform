@@ -6,7 +6,15 @@ import { cn } from "@/lib/utils/cn";
 
 interface UploadTileProps {
   label?: string;
-  name: string;
+  /**
+   * Only set this when the tile lives inside a `<form action={fn}>` and the
+   * file itself should ride along in that native FormData submission. Leave
+   * it unset when the selected file is instead read from `onFileSelected`
+   * and uploaded separately (e.g. via a signed URL) — an unnamed input is
+   * never included in the form's auto-collected FormData, so the raw bytes
+   * can't accidentally tag along on an otherwise-small Server Action call.
+   */
+  name?: string;
   accept?: string;
   onFileSelected?: (file: File | null) => void;
   className?: string;

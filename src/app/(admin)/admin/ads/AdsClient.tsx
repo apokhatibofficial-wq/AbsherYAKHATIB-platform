@@ -24,6 +24,14 @@ export function AdsClient({ initialAds }: { initialAds: Ad[] }) {
   async function handleSubmit(formData: FormData) {
     setSubmitting(true);
     try {
+      // Images travel separately via signed upload URLs (see below) — never
+      // let a stray File entry ride along on this small text-only Server
+      // Action call, or it silently re-introduces the request-body-size
+      // problem the signed-URL flow exists to avoid.
+      for (const key of [...formData.keys()]) {
+        if (formData.get(key) instanceof File) formData.delete(key);
+      }
+
       let result: { id?: string; error?: string };
       try {
         result = await createAdAction(formData);
@@ -124,7 +132,6 @@ export function AdsClient({ initialAds }: { initialAds: Ad[] }) {
           {images.map((_, i) => (
             <UploadTile
               key={i}
-              name={`imageSlot${i}`}
               onFileSelected={(file) => setImages((prev) => prev.map((f, idx) => (idx === i ? file : f)))}
             />
           ))}
