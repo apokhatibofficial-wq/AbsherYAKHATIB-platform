@@ -85,12 +85,13 @@ export async function professionalSignupAction(formData: FormData): Promise<Acti
     phone: formData.get("phone"),
     profession: formData.get("profession"),
     city: formData.get("city"),
+    locationUrl: formData.get("locationUrl") || undefined,
     idFront: formData.get("idFront"),
     idBack: formData.get("idBack"),
     workPhotos: formData.getAll("workPhotos").filter((f): f is File => f instanceof File && f.size > 0),
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "بيانات غير صحيحة" };
-  const { fullName, email, password, phone, profession, city, idFront, idBack, workPhotos } = parsed.data;
+  const { fullName, email, password, phone, profession, city, locationUrl, idFront, idBack, workPhotos } = parsed.data;
 
   // Regular signUp so the professional gets the normal confirmation email;
   // the service-role client below writes the related rows immediately,
@@ -112,6 +113,7 @@ export async function professionalSignupAction(formData: FormData): Promise<Acti
     profession,
     city,
     phone,
+    location_url: locationUrl || null,
   });
   if (profileError) return { error: "فشل حفظ بيانات الملف المهني" };
 

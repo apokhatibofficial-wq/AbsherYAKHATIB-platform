@@ -5,13 +5,13 @@ import { useSearchParams } from "next/navigation";
 import { SearchIcon } from "@/components/ui/icons";
 import { Chip } from "@/components/ui/Chip";
 import { ProfessionalRow } from "@/components/professionals/ProfessionalRow";
-import { PROFESSIONS, CITIES } from "@/types/domain";
+import { CITIES } from "@/types/domain";
 import type { Professional } from "@/types/domain";
 
 const ALL_PROFESSIONS = "الكل";
 const ALL_CITIES = "كل المدن";
 
-function SearchContent({ professionals }: { professionals: Professional[] }) {
+function SearchContent({ professionals, professions }: { professionals: Professional[]; professions: string[] }) {
   const searchParams = useSearchParams();
   const initialProfession = searchParams.get("profession") ?? ALL_PROFESSIONS;
 
@@ -47,7 +47,7 @@ function SearchContent({ professionals }: { professionals: Professional[] }) {
 
       <div className="mb-3 flex gap-2 overflow-x-auto pb-0.5">
         <Chip label={ALL_PROFESSIONS} active={professionFilter === ALL_PROFESSIONS} onClick={() => setProfessionFilter(ALL_PROFESSIONS)} />
-        {PROFESSIONS.map((p) => (
+        {professions.map((p) => (
           <Chip key={p} label={p} active={professionFilter === p} onClick={() => setProfessionFilter(p)} />
         ))}
       </div>
@@ -74,10 +74,16 @@ function SearchContent({ professionals }: { professionals: Professional[] }) {
   );
 }
 
-export function SearchClient({ professionals }: { professionals: Professional[] }) {
+export function SearchClient({
+  professionals,
+  professions,
+}: {
+  professionals: Professional[];
+  professions: string[];
+}) {
   return (
     <Suspense fallback={null}>
-      <SearchContent professionals={professionals} />
+      <SearchContent professionals={professionals} professions={professions} />
     </Suspense>
   );
 }

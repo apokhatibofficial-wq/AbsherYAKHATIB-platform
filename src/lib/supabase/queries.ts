@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import type { City, Profession, Professional, PendingEdit, AdminUser } from "@/types/domain";
 
-function mapProfessional(row: {
+type ProfessionalRow = {
   id: string;
   full_name: string;
   profession: string;
@@ -11,7 +11,10 @@ function mapProfessional(row: {
   view_count: number;
   status: string;
   submitted_at: string;
-}): Professional {
+  location_url: string | null;
+};
+
+function mapProfessional(row: ProfessionalRow): Professional {
   return {
     id: row.id,
     name: row.full_name,
@@ -23,7 +26,48 @@ function mapProfessional(row: {
     status: row.status as Professional["status"],
     galleryPhotoUrls: [],
     submittedAt: row.submitted_at,
+    locationUrl: row.location_url,
+    avgRating: null,
+    ratingCount: 0,
   };
+}
+
+type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
+
+async function attachRatings(
+  supabase: SupabaseServerClient,
+  professionals: Professional[]
+): Promise<Professional[]> {
+  if (professionals.length === 0) return professionals;
+  const { data } = await supabase
+    .from("ratings")
+    .select("professional_id, stars")
+    .in(
+      "professional_id",
+      professionals.map((p) => p.id)
+    );
+
+  const byId = new Map<string, { sum: number; count: number }>();
+  for (const row of data ?? []) {
+    const entry = byId.get(row.professional_id) ?? { sum: 0, count: 0 };
+    entry.sum += row.stars;
+    entry.count += 1;
+    byId.set(row.professional_id, entry);
+  }
+
+  return professionals.map((p) => {
+    const entry = byId.get(p.id);
+    return entry
+      ? { ...p, avgRating: Math.round((entry.sum / entry.count) * 10) / 10, ratingCount: entry.count }
+      : p;
+  });
+}
+
+export async function getProfessions(): Promise<string[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("professions").select("name").order("name");
+  if (error || !data) return [];
+  return data.map((row) => row.name);
 }
 
 export interface ProfessionalFilters {
@@ -42,10 +86,10 @@ export async function getApprovedProfessionals(filters: ProfessionalFilters = {}
   const { data, error } = await queryBuilder.order("submitted_at", { ascending: false });
   if (error || !data) return [];
 
-  const rows = data.map(mapProfessional);
+  let rows = data.map(mapProfessional);
   const q = filters.query?.trim();
-  if (!q) return rows;
-  return rows.filter((p) => p.name.includes(q) || p.profession.includes(q));
+  if (q) rows = rows.filter((p) => p.name.includes(q) || p.profession.includes(q));
+  return attachRatings(supabase, rows);
 }
 
 export async function getProfessionalById(id: string): Promise<Professional | null> {
@@ -63,21 +107,32 @@ export async function getProfessionalById(id: string): Promise<Professional | nu
     (d) => supabase.storage.from("work-photos").getPublicUrl(d.storage_path).data.publicUrl
   );
 
-  return { ...mapProfessional(row), galleryPhotoUrls };
+  const [withRating] = await attachRatings(supabase, [{ ...mapProfessional(row), galleryPhotoUrls }]);
+  return withRating;
 }
 
-export async function getFavoriteProfessionals(customerId: string): Promise<Professional[]> {
+export async function getMyRatingForProfessional(customerId: string, professionalId: string): Promise<number | null> {
   const supabase = await createClient();
-  const { data: favRows, error: favError } = await supabase
-    .from("favorites")
-    .select("professional_id")
-    .eq("customer_id", customerId);
-  if (favError || !favRows || favRows.length === 0) return [];
+  const { data } = await supabase
+    .from("ratings")
+    .select("stars")
+    .eq("customer_id", customerId)
+    .eq("professional_id", professionalId)
+    .maybeSingle();
+  return data?.stars ?? null;
+}
 
-  const ids = favRows.map((r) => r.professional_id);
-  const { data, error } = await supabase.from("professional_profiles").select("*").in("id", ids);
-  if (error || !data) return [];
-  return data.map(mapProfessional);
+export async function getFeaturedProfessionals(): Promise<Professional[]> {
+  const supabase = await createClient();
+  const { data: featured, error } = await supabase.from("featured_listings").select("professional_id");
+  if (error || !featured || featured.length === 0) return [];
+
+  const ids = featured.map((f) => f.professional_id);
+  const { data, error: proError } = await supabase.from("professional_profiles").select("*").in("id", ids);
+  if (proError || !data) return [];
+
+  const rows = await attachRatings(supabase, data.map(mapProfessional));
+  return rows.sort((a, b) => (b.avgRating ?? 0) - (a.avgRating ?? 0));
 }
 
 export async function getMyProfessionalProfile(userId: string): Promise<Professional | null> {
@@ -154,7 +209,7 @@ export async function getAdminRequests(): Promise<AdminProfessionalRequest[]> {
 }
 
 async function signedUrl(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: SupabaseServerClient,
   bucket: "id-documents" | "work-photos",
   path: string
 ): Promise<string | null> {
@@ -213,5 +268,34 @@ export async function getAdminUsers(): Promise<AdminUser[]> {
     role: row.role,
     email: row.email,
     status: row.status,
+  }));
+}
+
+export interface FeaturedCandidate {
+  id: string;
+  name: string;
+  profession: string;
+  city: string;
+  featured: boolean;
+}
+
+export async function getAdminFeaturedCandidates(): Promise<FeaturedCandidate[]> {
+  const supabase = await createClient();
+  const [{ data: pros }, { data: featured }] = await Promise.all([
+    supabase
+      .from("professional_profiles")
+      .select("id, full_name, profession, city")
+      .eq("status", "approved")
+      .order("full_name"),
+    supabase.from("featured_listings").select("professional_id"),
+  ]);
+
+  const featuredIds = new Set((featured ?? []).map((f) => f.professional_id));
+  return (pros ?? []).map((p) => ({
+    id: p.id,
+    name: p.full_name,
+    profession: p.profession,
+    city: p.city,
+    featured: featuredIds.has(p.id),
   }));
 }

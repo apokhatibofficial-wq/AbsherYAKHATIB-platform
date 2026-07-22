@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { PROFESSIONS, CITIES } from "@/types/domain";
+import { CITIES } from "@/types/domain";
 
 export const loginSchema = z.object({
   email: z.string().email({ message: "البريد الإلكتروني غير صحيح" }),
@@ -29,9 +29,15 @@ export const professionalSignupSchema = z.object({
   phone: z
     .string()
     .trim()
-    .regex(/^05\d{8}$/, { message: "رقم جوال سعودي غير صحيح (05xxxxxxxx)" }),
-  profession: z.enum(PROFESSIONS, { message: "اختر المهنة" }),
+    .regex(/^09\d{8}$/, { message: "رقم جوال سوري غير صحيح (09xxxxxxxx)" }),
+  profession: z.string().trim().min(2, { message: "أدخل المهنة" }).max(50, { message: "اسم المهنة طويل جدًا" }),
   city: z.enum(CITIES, { message: "اختر المدينة" }),
+  locationUrl: z
+    .string()
+    .trim()
+    .url({ message: "رابط غير صحيح" })
+    .optional()
+    .or(z.literal("")),
   idFront: imageFile,
   idBack: imageFile,
   workPhotos: z.array(imageFile).max(3, { message: "3 صور كحد أقصى" }).optional(),

@@ -1,15 +1,34 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/Avatar";
-import { BackIcon, PinIcon, EyeIcon, PhoneIcon, HeartIcon, CameraIcon } from "@/components/ui/icons";
-import { useFavorites } from "@/components/favorites/FavoritesProvider";
+import { BackIcon, PinIcon, EyeIcon, PhoneIcon, StarIcon, CameraIcon } from "@/components/ui/icons";
+import { StarRating } from "@/components/ui/StarRating";
+import { useToast } from "@/components/ui/Toast";
 import type { Professional } from "@/types/domain";
+import { rateProfessionalAction } from "./actions";
 
-export function ProfessionalProfileClient({ professional }: { professional: Professional }) {
+export function ProfessionalProfileClient({
+  professional,
+  myRating,
+}: {
+  professional: Professional;
+  myRating: number | null;
+}) {
   const router = useRouter();
-  const { isFavorite, toggleFavorite } = useFavorites();
-  const favorited = isFavorite(professional.id);
+  const { showToast } = useToast();
+  const [rating, setRating] = useState(myRating);
+
+  async function handleRate(stars: number) {
+    setRating(stars);
+    const result = await rateProfessionalAction(professional.id, stars);
+    if (result?.error) {
+      showToast(result.error);
+      return;
+    }
+    showToast("شكرًا على تقييمك");
+  }
 
   return (
     <div>
@@ -43,6 +62,13 @@ export function ProfessionalProfileClient({ professional }: { professional: Prof
             <EyeIcon size={16} className="mx-auto mb-1 text-text-muted" />
             <div className="text-[13px] font-bold text-text-primary">{professional.viewCount} مشاهدة</div>
           </div>
+          <div className="w-px bg-border-light" />
+          <div className="text-center">
+            <StarIcon size={16} filled className="mx-auto mb-1 text-gold" />
+            <div className="text-[13px] font-bold text-text-primary">
+              {professional.avgRating !== null ? `${professional.avgRating} (${professional.ratingCount})` : "لا يوجد"}
+            </div>
+          </div>
         </div>
 
         <div className="mb-[22px] flex gap-2.5">
@@ -53,13 +79,23 @@ export function ProfessionalProfileClient({ professional }: { professional: Prof
             <PhoneIcon size={16} />
             اتصال {professional.phone}
           </a>
-          <button
-            type="button"
-            onClick={() => toggleFavorite(professional.id)}
-            className="flex w-12 items-center justify-center rounded-btn border-[1.5px] border-border bg-white cursor-pointer"
-          >
-            <HeartIcon size={20} filled={favorited} className="text-danger" />
-          </button>
+          {professional.locationUrl && (
+            <a
+              href={professional.locationUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex w-12 items-center justify-center rounded-btn border-[1.5px] border-border bg-white cursor-pointer"
+            >
+              <PinIcon size={20} className="text-primary" />
+            </a>
+          )}
+        </div>
+
+        <div className="mb-5 rounded-card border border-border-light bg-white p-4 text-center">
+          <div className="mb-2 text-sm font-bold text-text-primary">قيّم هذا الشخص</div>
+          <div className="flex justify-center">
+            <StarRating value={rating} onRate={handleRate} />
+          </div>
         </div>
 
         <h2 className="mb-2 text-sm font-bold text-text-primary">نبذة عن الخدمة</h2>

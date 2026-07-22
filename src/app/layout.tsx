@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { tahrir } from "./fonts";
 import { ToastProvider } from "@/components/ui/Toast";
-import { FavoritesProvider } from "@/components/favorites/FavoritesProvider";
 import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
 import "./globals.css";
 
@@ -39,9 +38,7 @@ export default function RootLayout({
     <html lang="ar" dir="rtl" className={tahrir.variable}>
       <body className="font-sans antialiased bg-backdrop text-text-primary min-h-full">
         <ServiceWorkerRegister />
-        <ToastProvider>
-          <FavoritesProvider>{children}</FavoritesProvider>
-        </ToastProvider>
+        <ToastProvider>{children}</ToastProvider>
       </body>
     </html>
   );

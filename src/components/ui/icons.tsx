@@ -25,10 +25,10 @@ export function SearchIcon(props: IconProps) {
   );
 }
 
-export function HeartIcon({ filled, ...props }: IconProps & { filled?: boolean }) {
+export function StarIcon({ filled, ...props }: IconProps & { filled?: boolean }) {
   return (
     <svg {...base(props)} fill={filled ? "currentColor" : "none"}>
-      <path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0112 6a5.5 5.5 0 019.5 6c-2.5 4.5-9.5 9-9.5 9z" />
+      <path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8L12 2.5z" />
     </svg>
   );
 }

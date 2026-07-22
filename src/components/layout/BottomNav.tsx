@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils/cn";
-import { HomeIcon, SearchIcon, HeartIcon, UserIcon } from "@/components/ui/icons";
+import { HomeIcon, SearchIcon, StarIcon, UserIcon } from "@/components/ui/icons";
 
 const TABS = [
   { href: "/home", label: "الرئيسية", Icon: HomeIcon },
   { href: "/search", label: "البحث", Icon: SearchIcon },
-  { href: "/favorites", label: "المفضلة", Icon: HeartIcon },
+  { href: "/featured", label: "المميزون", Icon: StarIcon },
   { href: "/account", label: "حسابي", Icon: UserIcon },
 ] as const;
 

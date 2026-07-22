@@ -1,14 +1,20 @@
-export const PROFESSIONS = [
-  "سباك",
-  "كهربائي",
-  "نجار",
-  "دهان",
-  "تكييف وتبريد",
-  "نظافة",
-] as const;
-export type Profession = (typeof PROFESSIONS)[number];
+/** Professions are open-ended — see the `professions` table / getProfessions(). */
+export type Profession = string;
 
-export const CITIES = ["الرياض", "جدة", "الدمام", "مكة المكرمة"] as const;
+export const CITIES = [
+  "إدلب",
+  "معرة النعمان",
+  "أريحا",
+  "سراقب",
+  "جسر الشغور",
+  "حارم",
+  "كفرنبل",
+  "سلقين",
+  "بنش",
+  "دركوش",
+  "الدانا",
+  "خان شيخون",
+] as const;
 export type City = (typeof CITIES)[number];
 
 export type UserRole = "customer" | "professional" | "admin";
@@ -27,6 +33,9 @@ export interface Professional {
   status: ProfessionalStatus;
   galleryPhotoUrls: string[];
   submittedAt: string;
+  locationUrl: string | null;
+  avgRating: number | null;
+  ratingCount: number;
 }
 
 export interface PendingEdit {

@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { SearchIcon } from "@/components/ui/icons";
 import { ProfessionalRow } from "@/components/professionals/ProfessionalRow";
-import { PROFESSIONS } from "@/types/domain";
-import { getApprovedProfessionals } from "@/lib/supabase/queries";
+import { getApprovedProfessionals, getProfessions } from "@/lib/supabase/queries";
 
 export default async function HomePage() {
-  const nearby = await getApprovedProfessionals();
+  const [nearby, professions] = await Promise.all([getApprovedProfessionals(), getProfessions()]);
 
   return (
     <div className="px-5 py-5">
@@ -24,7 +23,7 @@ export default async function HomePage() {
 
       <h2 className="mb-3 text-sm font-bold text-text-primary">تصفح حسب المهنة</h2>
       <div className="mb-[26px] grid grid-cols-4 gap-2.5">
-        {PROFESSIONS.map((profession) => (
+        {professions.map((profession) => (
           <Link
             key={profession}
             href={`/search?profession=${encodeURIComponent(profession)}`}

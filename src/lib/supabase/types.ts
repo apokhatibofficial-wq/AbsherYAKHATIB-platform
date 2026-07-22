@@ -48,6 +48,7 @@ export interface Database {
           status: ProfessionalStatusDb;
           submitted_at: string;
           reviewed_at: string | null;
+          location_url: string | null;
         };
         Insert: {
           id: string;
@@ -57,6 +58,7 @@ export interface Database {
           phone: string;
           description?: string;
           status?: ProfessionalStatusDb;
+          location_url?: string | null;
         };
         Update: Partial<{
           full_name: string;
@@ -66,6 +68,7 @@ export interface Database {
           description: string;
           status: ProfessionalStatusDb;
           reviewed_at: string | null;
+          location_url: string | null;
         }>;
         Relationships: [
           {
@@ -136,22 +139,51 @@ export interface Database {
           },
         ];
       };
-      favorites: {
+      professions: {
+        Row: { name: string; created_at: string };
+        Insert: { name: string };
+        Update: Partial<{ name: string }>;
+        Relationships: [];
+      };
+      ratings: {
         Row: {
-          customer_id: string;
+          id: string;
           professional_id: string;
+          customer_id: string;
+          stars: number;
           created_at: string;
         };
         Insert: {
+          professional_id: string;
           customer_id: string;
+          stars: number;
+        };
+        Update: Partial<{ stars: number }>;
+        Relationships: [
+          {
+            foreignKeyName: "ratings_professional_id_fkey";
+            columns: ["professional_id"];
+            isOneToOne: false;
+            referencedRelation: "professional_profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      featured_listings: {
+        Row: {
+          id: string;
+          professional_id: string;
+          added_at: string;
+        };
+        Insert: {
           professional_id: string;
         };
         Update: Record<string, never>;
         Relationships: [
           {
-            foreignKeyName: "favorites_professional_id_fkey";
+            foreignKeyName: "featured_listings_professional_id_fkey";
             columns: ["professional_id"];
-            isOneToOne: false;
+            isOneToOne: true;
             referencedRelation: "professional_profiles";
             referencedColumns: ["id"];
           },

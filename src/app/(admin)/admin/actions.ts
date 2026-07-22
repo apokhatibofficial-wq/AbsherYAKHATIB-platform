@@ -43,3 +43,19 @@ export async function setUserStatusAction(userId: string, status: AccountStatusD
   revalidatePath("/admin/users");
   return {};
 }
+
+export async function addFeaturedAction(professionalId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("featured_listings").insert({ professional_id: professionalId });
+  if (error) return { error: "تعذر إضافة صاحب المهنة للقائمة" };
+  revalidatePath("/admin/featured");
+  return {};
+}
+
+export async function removeFeaturedAction(professionalId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("featured_listings").delete().eq("professional_id", professionalId);
+  if (error) return { error: "تعذر إزالة صاحب المهنة من القائمة" };
+  revalidatePath("/admin/featured");
+  return {};
+}

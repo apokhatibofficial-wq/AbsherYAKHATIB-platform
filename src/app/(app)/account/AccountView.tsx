@@ -8,9 +8,9 @@ import { Textarea, Input } from "@/components/ui/Input";
 import { UploadTile } from "@/components/ui/UploadTile";
 import { ShieldIcon } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/Toast";
+import { LogoutButton } from "@/components/auth/LogoutButton";
 import type { CurrentUser } from "@/lib/auth/session";
 import type { Professional } from "@/types/domain";
-import { logoutAction } from "../../(auth)/actions";
 import { submitProfileEditsAction } from "./actions";
 
 const ROLE_LABELS: Record<CurrentUser["role"], string> = {
@@ -38,30 +38,12 @@ export function AccountView({ user, professional, hasPendingEdit }: AccountViewP
         </div>
       </div>
 
-      {user.role === "customer" && <CustomerActions />}
+      {user.role === "customer" && <LogoutButton />}
       {user.role === "professional" && professional && (
         <ProfessionalDashboard professional={professional} hasPendingEdit={hasPendingEdit} />
       )}
       {user.role === "admin" && <AdminEntry />}
     </div>
-  );
-}
-
-function CustomerActions() {
-  const router = useRouter();
-  return (
-    <Button
-      type="button"
-      variant="subtleOutline"
-      fullWidth
-      className="!text-danger"
-      onClick={async () => {
-        await logoutAction();
-        router.push("/login");
-      }}
-    >
-      تسجيل الخروج
-    </Button>
   );
 }
 
@@ -130,9 +112,10 @@ function ProfessionalDashboard({
         <UploadTile name="newWorkPhoto" height={56} className="mb-1.5" />
       </div>
 
-      <Button type="button" fullWidth disabled={saving} onClick={handleSave}>
+      <Button type="button" fullWidth disabled={saving} onClick={handleSave} className="mb-3">
         حفظ التعديلات
       </Button>
+      <LogoutButton />
     </div>
   );
 }
@@ -140,9 +123,18 @@ function ProfessionalDashboard({
 function AdminEntry() {
   const router = useRouter();
   return (
-    <Button type="button" variant="dark" fullWidth onClick={() => router.push("/admin/requests")}>
-      <ShieldIcon size={17} />
-      الدخول إلى لوحة الإدارة
-    </Button>
+    <div>
+      <Button
+        type="button"
+        variant="dark"
+        fullWidth
+        onClick={() => router.push("/admin/requests")}
+        className="mb-3"
+      >
+        <ShieldIcon size={17} />
+        الدخول إلى لوحة الإدارة
+      </Button>
+      <LogoutButton />
+    </div>
   );
 }
