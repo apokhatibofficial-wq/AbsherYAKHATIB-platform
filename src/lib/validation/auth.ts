@@ -17,7 +17,7 @@ export const customerSignupSchema = z.object({
 });
 export type CustomerSignupInput = z.infer<typeof customerSignupSchema>;
 
-const MAX_FILE_BYTES = 5 * 1024 * 1024;
+const MAX_FILE_BYTES = 20 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = [
   "image/jpeg",
   "image/png",
@@ -29,7 +29,7 @@ const ACCEPTED_IMAGE_TYPES = [
 
 const imageFile = z
   .instanceof(File, { message: "الملف مطلوب" })
-  .refine((f) => f.size <= MAX_FILE_BYTES, { message: "الحد الأقصى لحجم الملف 5 ميجابايت" })
+  .refine((f) => f.size <= MAX_FILE_BYTES, { message: "الحد الأقصى لحجم الملف 20 ميجابايت" })
   .refine((f) => ACCEPTED_IMAGE_TYPES.includes(f.type), { message: "صيغة الصورة غير مدعومة" });
 
 export const professionalSignupSchema = z.object({

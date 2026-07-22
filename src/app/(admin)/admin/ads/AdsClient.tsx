@@ -24,26 +24,57 @@ export function AdsClient({ initialAds }: { initialAds: Ad[] }) {
   async function handleSubmit(formData: FormData) {
     setSubmitting(true);
     try {
-      const result = await createAdAction(formData);
-      if (result?.error || !result.id) {
-        showToast(result?.error ?? "تعذر إنشاء الإعلان");
+      let result: { id?: string; error?: string };
+      try {
+        result = await createAdAction(formData);
+      } catch (err) {
+        console.error("createAdAction failed", err);
+        showToast("تعذر إنشاء الإعلان، حاولي مجددًا");
         return;
       }
+      if (result.error || !result.id) {
+        showToast(result.error ?? "تعذر إنشاء الإعلان");
+        return;
+      }
+      const adId = result.id;
 
+      // The ad row itself is already saved at this point — every step below
+      // is best-effort per file, so one bad photo never looks like the
+      // whole thing failed.
       const filesToUpload = images.filter((f): f is File => f !== null);
       const imagePaths: string[] = [];
       for (const file of filesToUpload) {
-        const uploadUrl = await getAdImageUploadUrlAction(result.id, fileExt(file));
-        if (uploadUrl.error || !uploadUrl.path || !uploadUrl.token) continue;
-        const uploadError = await uploadViaSignedUrl("ads", uploadUrl.path, uploadUrl.token, file);
-        if (!uploadError) imagePaths.push(uploadUrl.path);
+        try {
+          const uploadUrl = await getAdImageUploadUrlAction(adId, fileExt(file));
+          if (uploadUrl.error || !uploadUrl.path || !uploadUrl.token) {
+            console.error("getAdImageUploadUrlAction failed", uploadUrl.error);
+            continue;
+          }
+          const uploadError = await uploadViaSignedUrl("ads", uploadUrl.path, uploadUrl.token, file);
+          if (uploadError) {
+            console.error("uploadViaSignedUrl failed", uploadError);
+            continue;
+          }
+          imagePaths.push(uploadUrl.path);
+        } catch (err) {
+          console.error("image upload threw", err);
+        }
       }
 
       if (imagePaths.length > 0) {
-        await attachAdImagesAction(result.id, imagePaths);
+        try {
+          await attachAdImagesAction(adId, imagePaths);
+        } catch (err) {
+          console.error("attachAdImagesAction failed", err);
+        }
       }
+
       if (filesToUpload.length > 0 && imagePaths.length < filesToUpload.length) {
-        showToast("تمت إضافة الإعلان، لكن بعض الصور لم تُرفع (تحققي من صيغتها)");
+        showToast(
+          imagePaths.length === 0
+            ? "تمت إضافة الإعلان بدون الصور، تحققي من صيغتها وحاولي رفعها لاحقًا"
+            : "تمت إضافة الإعلان، لكن بعض الصور لم تُرفع (تحققي من صيغتها)"
+        );
       } else {
         showToast("تمت إضافة الإعلان");
       }
@@ -51,8 +82,6 @@ export function AdsClient({ initialAds }: { initialAds: Ad[] }) {
       setImages(Array(IMAGE_SLOTS).fill(null));
       setFormKey((k) => k + 1);
       router.refresh();
-    } catch {
-      showToast("تعذر إضافة الإعلان، حاولي مجددًا");
     } finally {
       setSubmitting(false);
     }
