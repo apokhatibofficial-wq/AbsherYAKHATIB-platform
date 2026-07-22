@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { UploadTile } from "@/components/ui/UploadTile";
 import { useToast } from "@/components/ui/Toast";
-import { createAdAction, deleteAdAction } from "../actions";
+import { createAdAction, deleteAdAction, getAdImageUploadUrlAction, attachAdImagesAction } from "../actions";
 import { SOCIAL_PLATFORMS } from "@/lib/ads";
+import { uploadViaSignedUrl, fileExt } from "@/lib/uploadFile";
 import type { Ad } from "@/types/domain";
 
 const IMAGE_SLOTS = 3;
@@ -22,21 +23,36 @@ export function AdsClient({ initialAds }: { initialAds: Ad[] }) {
 
   async function handleSubmit(formData: FormData) {
     setSubmitting(true);
-    images.forEach((file) => {
-      if (file) formData.append("images", file);
-    });
     try {
       const result = await createAdAction(formData);
-      if (result?.error) {
-        showToast(result.error);
+      if (result?.error || !result.id) {
+        showToast(result?.error ?? "تعذر إنشاء الإعلان");
         return;
       }
+
+      const filesToUpload = images.filter((f): f is File => f !== null);
+      const imagePaths: string[] = [];
+      for (const file of filesToUpload) {
+        const uploadUrl = await getAdImageUploadUrlAction(result.id, fileExt(file));
+        if (uploadUrl.error || !uploadUrl.path || !uploadUrl.token) continue;
+        const uploadError = await uploadViaSignedUrl("ads", uploadUrl.path, uploadUrl.token, file);
+        if (!uploadError) imagePaths.push(uploadUrl.path);
+      }
+
+      if (imagePaths.length > 0) {
+        await attachAdImagesAction(result.id, imagePaths);
+      }
+      if (filesToUpload.length > 0 && imagePaths.length < filesToUpload.length) {
+        showToast("تمت إضافة الإعلان، لكن بعض الصور لم تُرفع");
+      } else {
+        showToast("تمت إضافة الإعلان");
+      }
+
       setImages(Array(IMAGE_SLOTS).fill(null));
       setFormKey((k) => k + 1);
-      showToast("تمت إضافة الإعلان");
       router.refresh();
     } catch {
-      showToast("تعذر إضافة الإعلان، تحققي من حجم الصور وحاولي مجددًا");
+      showToast("تعذر إضافة الإعلان، حاولي مجددًا");
     } finally {
       setSubmitting(false);
     }

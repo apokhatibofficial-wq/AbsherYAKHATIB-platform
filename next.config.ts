@@ -3,10 +3,11 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
-      // Default is 1MB, too small for the ID/work/ad photo uploads that go
-      // through Server Actions (professional signup can send up to 5 photos
-      // at once, each up to the 5MB storage bucket limit).
-      bodySizeLimit: "30mb",
+      // Photo bytes no longer travel through Server Actions (they go
+      // straight from the browser to Supabase Storage via signed upload
+      // URLs — see src/lib/uploadFile.ts) — this only needs headroom for
+      // small text/JSON payloads.
+      bodySizeLimit: "2mb",
     },
   },
 };

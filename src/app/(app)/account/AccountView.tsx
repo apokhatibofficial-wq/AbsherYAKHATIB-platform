@@ -10,7 +10,8 @@ import { useToast } from "@/components/ui/Toast";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import type { CurrentUser } from "@/lib/auth/session";
 import type { Professional } from "@/types/domain";
-import { submitProfileEditsAction, changeAvatarAction } from "./actions";
+import { submitProfileEditsAction, getAvatarUploadUrlAction, finalizeAvatarAction } from "./actions";
+import { uploadViaSignedUrl, fileExt } from "@/lib/uploadFile";
 
 const ROLE_LABELS: Record<CurrentUser["role"], string> = {
   customer: "عميل",
@@ -47,9 +48,17 @@ function AvatarUploader({
     if (!file) return;
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.set("avatar", file);
-      const result = await changeAvatarAction(formData);
+      const uploadUrl = await getAvatarUploadUrlAction(fileExt(file));
+      if (uploadUrl.error || !uploadUrl.path || !uploadUrl.token) {
+        showToast(uploadUrl.error ?? "تعذر رفع الصورة");
+        return;
+      }
+      const uploadError = await uploadViaSignedUrl("avatars", uploadUrl.path, uploadUrl.token, file);
+      if (uploadError) {
+        showToast("تعذر رفع الصورة");
+        return;
+      }
+      const result = await finalizeAvatarAction(uploadUrl.path);
       if (result?.error) {
         showToast(result.error);
         return;
@@ -57,7 +66,7 @@ function AvatarUploader({
       showToast("تم تحديث الصورة");
       router.refresh();
     } catch {
-      showToast("تعذر رفع الصورة، تحققي من حجمها وحاولي مجددًا");
+      showToast("تعذر رفع الصورة، حاولي مجددًا");
     } finally {
       setUploading(false);
       e.target.value = "";

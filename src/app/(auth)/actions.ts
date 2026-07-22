@@ -78,23 +78,23 @@ export async function resendOtpAction(email: string): Promise<ActionResult> {
   return {};
 }
 
-export async function professionalSignupAction(formData: FormData): Promise<ActionResult> {
-  const parsed = professionalSignupSchema.safeParse({
-    fullName: formData.get("fullName"),
-    email: formData.get("email"),
-    password: formData.get("password"),
-    phone: formData.get("phone"),
-    gender: formData.get("gender"),
-    profession: formData.get("profession"),
-    city: formData.get("city"),
-    locationUrl: formData.get("locationUrl") || undefined,
-    idFront: formData.get("idFront"),
-    idBack: formData.get("idBack"),
-    workPhotos: formData.getAll("workPhotos").filter((f): f is File => f instanceof File && f.size > 0),
-  });
+export async function professionalSignupAction(
+  formData: FormData
+): Promise<{ userId?: string; error?: string }> {
+  const parsed = professionalSignupSchema
+    .omit({ idFront: true, idBack: true, workPhotos: true })
+    .safeParse({
+      fullName: formData.get("fullName"),
+      email: formData.get("email"),
+      password: formData.get("password"),
+      phone: formData.get("phone"),
+      gender: formData.get("gender"),
+      profession: formData.get("profession"),
+      city: formData.get("city"),
+      locationUrl: formData.get("locationUrl") || undefined,
+    });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "بيانات غير صحيحة" };
-  const { fullName, email, password, phone, gender, profession, city, locationUrl, idFront, idBack, workPhotos } =
-    parsed.data;
+  const { fullName, email, password, phone, gender, profession, city, locationUrl } = parsed.data;
 
   // Regular signUp so the professional gets the normal confirmation email;
   // the service-role client below writes the related rows immediately,
@@ -120,24 +120,53 @@ export async function professionalSignupAction(formData: FormData): Promise<Acti
   });
   if (profileError) return { error: "فشل حفظ بيانات الملف المهني" };
 
-  const uploads: { file: File; kind: "id_front" | "id_back" | "work_photo"; bucket: "id-documents" | "work-photos" }[] = [
-    { file: idFront, kind: "id_front", bucket: "id-documents" },
-    { file: idBack, kind: "id_back", bucket: "id-documents" },
-    ...(workPhotos ?? []).map((file) => ({ file, kind: "work_photo" as const, bucket: "work-photos" as const })),
-  ];
+  return { userId };
+}
 
-  for (const upload of uploads) {
-    const ext = upload.file.name.split(".").pop() ?? "jpg";
-    const path = `${userId}/${crypto.randomUUID()}.${ext}`;
-    const { error: uploadError } = await admin.storage.from(upload.bucket).upload(path, upload.file);
-    if (uploadError) continue;
-    await admin.from("professional_documents").insert({
-      professional_id: userId,
-      kind: upload.kind,
-      storage_path: path,
-    });
-  }
+/**
+ * Returns a short-lived signed upload URL so the browser can send an ID/work
+ * photo straight to Supabase Storage, bypassing our own server (whose
+ * hosting platform caps request bodies well under a typical photo's size).
+ * Only issued for a professional still pending review, so a random id can't
+ * be used to plant files in someone else's folder.
+ */
+export async function getProfessionalDocUploadUrlAction(
+  userId: string,
+  kind: "id_front" | "id_back" | "work_photo",
+  ext: string
+): Promise<{ path?: string; token?: string; bucket?: string; error?: string }> {
+  const admin = createAdminClient();
+  const { data: pending } = await admin
+    .from("professional_profiles")
+    .select("id")
+    .eq("id", userId)
+    .eq("status", "pending_review")
+    .maybeSingle();
+  if (!pending) return { error: "غير مصرح" };
 
+  const bucket = kind === "work_photo" ? "work-photos" : "id-documents";
+  const path = `${userId}/${crypto.randomUUID()}.${ext}`;
+  const { data, error } = await admin.storage.from(bucket).createSignedUploadUrl(path);
+  if (error || !data) return { error: "تعذر تجهيز رفع الصورة" };
+  return { path: data.path, token: data.token, bucket };
+}
+
+export async function attachProfessionalDocumentAction(
+  userId: string,
+  kind: "id_front" | "id_back" | "work_photo",
+  path: string
+): Promise<{ error?: string }> {
+  const admin = createAdminClient();
+  const { error } = await admin.from("professional_documents").insert({
+    professional_id: userId,
+    kind,
+    storage_path: path,
+  });
+  if (error) return { error: "تعذر حفظ المستند" };
+  return {};
+}
+
+export async function finishProfessionalSignupAction(): Promise<void> {
   redirect("/pending");
 }
 

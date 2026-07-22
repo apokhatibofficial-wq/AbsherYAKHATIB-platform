@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { AccountStatusDb } from "@/lib/supabase/types";
 import { SOCIAL_PLATFORMS } from "@/lib/ads";
 
@@ -61,7 +62,9 @@ export async function removeFeaturedAction(professionalId: string) {
   return {};
 }
 
-export async function createAdAction(formData: FormData) {
+export async function createAdAction(
+  formData: FormData
+): Promise<{ id?: string; error?: string }> {
   const supabase = await createClient();
 
   const name = (formData.get("name") as string)?.trim() || null;
@@ -75,8 +78,6 @@ export async function createAdAction(formData: FormData) {
     if (value) socialLinks[key] = value;
   }
 
-  const images = formData.getAll("images").filter((f): f is File => f instanceof File && f.size > 0);
-
   const { data: ad, error } = await supabase
     .from("ads")
     .insert({ name, external_url: externalUrl, phone, location_url: locationUrl, social_links: socialLinks })
@@ -84,18 +85,39 @@ export async function createAdAction(formData: FormData) {
     .single();
   if (error || !ad) return { error: "تعذر إنشاء الإعلان" };
 
-  const imagePaths: string[] = [];
-  for (const file of images) {
-    const ext = file.name.split(".").pop() ?? "jpg";
-    const path = `${ad.id}/${crypto.randomUUID()}.${ext}`;
-    const { error: uploadError } = await supabase.storage.from("ads").upload(path, file);
-    if (!uploadError) imagePaths.push(path);
-  }
+  revalidatePath("/admin/ads");
+  revalidatePath("/ads");
+  return { id: ad.id };
+}
 
-  if (imagePaths.length > 0) {
-    await supabase.from("ads").update({ image_paths: imagePaths }).eq("id", ad.id);
-  }
+/**
+ * Returns a short-lived signed upload URL so the browser can send the image
+ * bytes straight to Supabase Storage, bypassing our own server (whose
+ * hosting platform caps request bodies well under a typical photo's size).
+ */
+export async function getAdImageUploadUrlAction(
+  adId: string,
+  ext: string
+): Promise<{ path?: string; token?: string; error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "غير مصرح" };
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+  if (profile?.role !== "admin") return { error: "غير مصرح" };
 
+  const path = `${adId}/${crypto.randomUUID()}.${ext}`;
+  const admin = createAdminClient();
+  const { data, error } = await admin.storage.from("ads").createSignedUploadUrl(path);
+  if (error || !data) return { error: "تعذر تجهيز رفع الصورة" };
+  return { path: data.path, token: data.token };
+}
+
+export async function attachAdImagesAction(adId: string, imagePaths: string[]) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("ads").update({ image_paths: imagePaths }).eq("id", adId);
+  if (error) return { error: "تعذر ربط الصور بالإعلان" };
   revalidatePath("/admin/ads");
   revalidatePath("/ads");
   return {};

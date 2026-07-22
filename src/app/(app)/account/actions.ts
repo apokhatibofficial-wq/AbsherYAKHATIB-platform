@@ -2,22 +2,31 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
-export async function changeAvatarAction(formData: FormData) {
+/**
+ * Returns a short-lived signed upload URL so the browser can send the photo
+ * bytes straight to Supabase Storage, bypassing our own server (whose
+ * hosting platform caps request bodies well under a typical photo's size).
+ */
+export async function getAvatarUploadUrlAction(
+  ext: string
+): Promise<{ path?: string; token?: string; error?: string }> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { error: "غير مصرح" };
 
-  const file = formData.get("avatar");
-  if (!(file instanceof File) || file.size === 0) return { error: "يرجى اختيار صورة" };
-
-  const ext = file.name.split(".").pop() ?? "jpg";
   const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
-  const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file);
-  if (uploadError) return { error: "تعذر رفع الصورة" };
+  const admin = createAdminClient();
+  const { data, error } = await admin.storage.from("avatars").createSignedUploadUrl(path);
+  if (error || !data) return { error: "تعذر تجهيز رفع الصورة" };
+  return { path: data.path, token: data.token };
+}
 
+export async function finalizeAvatarAction(path: string): Promise<{ error?: string }> {
+  const supabase = await createClient();
   const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
   const { error: rpcError } = await supabase.rpc("update_my_avatar", { p_avatar_url: pub.publicUrl });
   if (rpcError) return { error: "تعذر تحديث الصورة" };

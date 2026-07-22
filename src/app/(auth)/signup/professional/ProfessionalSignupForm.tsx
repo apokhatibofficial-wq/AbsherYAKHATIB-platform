@@ -10,7 +10,13 @@ import { UploadTile } from "@/components/ui/UploadTile";
 import { GenderPicker } from "@/components/ui/GenderPicker";
 import { CITIES } from "@/types/domain";
 import { professionalSignupSchema, type ProfessionalSignupInput } from "@/lib/validation/auth";
-import { professionalSignupAction } from "../../actions";
+import {
+  professionalSignupAction,
+  getProfessionalDocUploadUrlAction,
+  attachProfessionalDocumentAction,
+  finishProfessionalSignupAction,
+} from "../../actions";
+import { uploadViaSignedUrl, fileExt } from "@/lib/uploadFile";
 
 type TextFields = Omit<ProfessionalSignupInput, "idFront" | "idBack" | "workPhotos">;
 
@@ -72,13 +78,29 @@ export function ProfessionalSignupForm({ professions }: { professions: string[] 
     formData.set("profession", parsed.data.profession);
     formData.set("city", parsed.data.city);
     if (parsed.data.locationUrl) formData.set("locationUrl", parsed.data.locationUrl);
-    formData.set("idFront", parsed.data.idFront);
-    formData.set("idBack", parsed.data.idBack);
-    (parsed.data.workPhotos ?? []).forEach((file) => formData.append("workPhotos", file));
 
     const result = await professionalSignupAction(formData);
-    setSubmitting(false);
-    if (result?.error) setFileError(result.error);
+    if (result?.error || !result.userId) {
+      setSubmitting(false);
+      setFileError(result?.error ?? "فشل إنشاء الحساب");
+      return;
+    }
+    const userId = result.userId;
+
+    const docs: { kind: "id_front" | "id_back" | "work_photo"; file: File }[] = [
+      { kind: "id_front", file: parsed.data.idFront },
+      { kind: "id_back", file: parsed.data.idBack },
+      ...(parsed.data.workPhotos ?? []).map((file) => ({ kind: "work_photo" as const, file })),
+    ];
+
+    for (const doc of docs) {
+      const uploadUrl = await getProfessionalDocUploadUrlAction(userId, doc.kind, fileExt(doc.file));
+      if (uploadUrl.error || !uploadUrl.path || !uploadUrl.token || !uploadUrl.bucket) continue;
+      const uploadError = await uploadViaSignedUrl(uploadUrl.bucket, uploadUrl.path, uploadUrl.token, doc.file);
+      if (!uploadError) await attachProfessionalDocumentAction(userId, doc.kind, uploadUrl.path);
+    }
+
+    await finishProfessionalSignupAction();
   }
 
   return (
