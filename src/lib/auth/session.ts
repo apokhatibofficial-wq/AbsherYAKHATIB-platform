@@ -1,3 +1,4 @@
+import { createClient } from "@/lib/supabase/server";
 import type { UserRole } from "@/types/domain";
 
 export interface CurrentUser {
@@ -7,16 +8,25 @@ export interface CurrentUser {
   role: UserRole;
 }
 
-/**
- * TODO(supabase): replace with a real session lookup via `@supabase/ssr`
- * (createServerClient + auth.getUser(), joined with the `profiles` table for role).
- * Returns a fixed customer session so the app shell is navigable before Supabase is wired.
- */
-export async function getCurrentUser(): Promise<CurrentUser> {
+export async function getCurrentUser(): Promise<CurrentUser | null> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name, email, role")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile) return null;
+
   return {
-    id: "mock-user",
-    name: "محمد عبدالله",
-    email: "m.abdullah@mail.com",
-    role: "customer",
+    id: user.id,
+    name: profile.full_name,
+    email: profile.email,
+    role: profile.role,
   };
 }

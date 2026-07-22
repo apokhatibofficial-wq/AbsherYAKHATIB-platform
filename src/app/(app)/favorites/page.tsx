@@ -1,13 +1,14 @@
-"use client";
-
+import { redirect } from "next/navigation";
 import { HeartIcon } from "@/components/ui/icons";
 import { ProfessionalRow } from "@/components/professionals/ProfessionalRow";
-import { useFavorites } from "@/components/favorites/FavoritesProvider";
-import { MOCK_PROFESSIONALS } from "@/lib/mock/data";
+import { getCurrentUser } from "@/lib/auth/session";
+import { getFavoriteProfessionals } from "@/lib/supabase/queries";
 
-export default function FavoritesPage() {
-  const { favoriteIds } = useFavorites();
-  const favorites = MOCK_PROFESSIONALS.filter((p) => favoriteIds.has(p.id));
+export default async function FavoritesPage() {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+
+  const favorites = await getFavoriteProfessionals(user.id);
 
   return (
     <div className="px-5 py-5">

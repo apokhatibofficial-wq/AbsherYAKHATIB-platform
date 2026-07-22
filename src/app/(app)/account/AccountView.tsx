@@ -8,8 +8,10 @@ import { Textarea, Input } from "@/components/ui/Input";
 import { UploadTile } from "@/components/ui/UploadTile";
 import { ShieldIcon } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/Toast";
-import { MOCK_PROFESSIONALS } from "@/lib/mock/data";
 import type { CurrentUser } from "@/lib/auth/session";
+import type { Professional } from "@/types/domain";
+import { logoutAction } from "../../(auth)/actions";
+import { submitProfileEditsAction } from "./actions";
 
 const ROLE_LABELS: Record<CurrentUser["role"], string> = {
   customer: "عميل",
@@ -17,7 +19,13 @@ const ROLE_LABELS: Record<CurrentUser["role"], string> = {
   admin: "مدير",
 };
 
-export function AccountView({ user }: { user: CurrentUser }) {
+interface AccountViewProps {
+  user: CurrentUser;
+  professional: Professional | null;
+  hasPendingEdit: boolean;
+}
+
+export function AccountView({ user, professional, hasPendingEdit }: AccountViewProps) {
   return (
     <div className="px-5 py-5">
       <h1 className="mb-4 text-[19px] font-extrabold text-text-primary">حسابي</h1>
@@ -31,7 +39,9 @@ export function AccountView({ user }: { user: CurrentUser }) {
       </div>
 
       {user.role === "customer" && <CustomerActions />}
-      {user.role === "professional" && <ProfessionalDashboard />}
+      {user.role === "professional" && professional && (
+        <ProfessionalDashboard professional={professional} hasPendingEdit={hasPendingEdit} />
+      )}
       {user.role === "admin" && <AdminEntry />}
     </div>
   );
@@ -45,8 +55,8 @@ function CustomerActions() {
       variant="subtleOutline"
       fullWidth
       className="!text-danger"
-      onClick={() => {
-        // TODO(supabase): supabase.auth.signOut()
+      onClick={async () => {
+        await logoutAction();
         router.push("/login");
       }}
     >
@@ -55,21 +65,34 @@ function CustomerActions() {
   );
 }
 
-function ProfessionalDashboard() {
+function ProfessionalDashboard({
+  professional,
+  hasPendingEdit: initialHasPendingEdit,
+}: {
+  professional: Professional;
+  hasPendingEdit: boolean;
+}) {
   const { showToast } = useToast();
-  // TODO(supabase): source from the authenticated professional's own row + their latest pending_edits entry.
-  const professional = MOCK_PROFESSIONALS[0];
   const [description, setDescription] = useState(professional.description);
   const [phone, setPhone] = useState(professional.phone);
-  const [pendingEdit, setPendingEdit] = useState(false);
+  const [hasPendingEdit, setHasPendingEdit] = useState(initialHasPendingEdit);
   const [saving, setSaving] = useState(false);
 
   async function handleSave() {
     setSaving(true);
-    // TODO(supabase): insert into `pending_edits` (old/new diff) — never write directly to the live profile.
-    await new Promise((r) => setTimeout(r, 300));
-    setPendingEdit(true);
+    const result = await submitProfileEditsAction({
+      professionalId: professional.id,
+      currentDescription: professional.description,
+      currentPhone: professional.phone,
+      newDescription: description,
+      newPhone: phone,
+    });
     setSaving(false);
+    if (result?.error) {
+      showToast(result.error);
+      return;
+    }
+    setHasPendingEdit(true);
     showToast("تم إرسال التعديل للمراجعة");
   }
 
@@ -77,7 +100,7 @@ function ProfessionalDashboard() {
     <div>
       <h2 className="mb-2.5 text-sm font-bold text-text-primary">لوحتي كصاحب مهنة</h2>
 
-      {pendingEdit && (
+      {hasPendingEdit && (
         <div className="mb-3.5 rounded-xl border border-warning-border bg-warning-bg px-3.5 py-3 text-[12.5px] leading-[1.7] text-warning-text">
           تعديلك الأخير على الملف بانتظار موافقة الإدارة ولن يظهر للمستخدمين حتى تتم مراجعته.
         </div>
@@ -103,6 +126,7 @@ function ProfessionalDashboard() {
         <Input label="رقم التواصل" ltr value={phone} onChange={(e) => setPhone(e.target.value)} />
 
         <label className="mb-1.5 block text-[12.5px] font-semibold text-text-secondary">إضافة صور أعمال</label>
+        {/* TODO(supabase): upload directly to the work-photos bucket + insert professional_documents (additive, no admin review needed). */}
         <UploadTile name="newWorkPhoto" height={56} className="mb-1.5" />
       </div>
 

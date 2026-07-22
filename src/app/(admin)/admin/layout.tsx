@@ -1,10 +1,8 @@
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
-import { MOCK_ADMIN_REQUESTS, MOCK_PENDING_EDITS } from "@/lib/mock/data";
+import { getAdminCounts } from "@/lib/supabase/queries";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  // TODO(supabase): fetch live pending counts instead of mock array lengths.
-  const requestsCount = MOCK_ADMIN_REQUESTS.length;
-  const editsCount = MOCK_PENDING_EDITS.filter((e) => e.status === "pending").length;
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const { requestsCount, editsCount } = await getAdminCounts();
 
   return (
     <div className="flex min-h-dvh justify-center bg-backdrop p-6">

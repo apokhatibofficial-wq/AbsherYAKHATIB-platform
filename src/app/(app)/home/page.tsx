@@ -2,11 +2,10 @@ import Link from "next/link";
 import { SearchIcon } from "@/components/ui/icons";
 import { ProfessionalRow } from "@/components/professionals/ProfessionalRow";
 import { PROFESSIONS } from "@/types/domain";
-import { MOCK_PROFESSIONALS } from "@/lib/mock/data";
+import { getApprovedProfessionals } from "@/lib/supabase/queries";
 
 export default async function HomePage() {
-  // TODO(supabase): replace with a query scoped to the customer's nearby/recommended professionals.
-  const nearby = MOCK_PROFESSIONALS;
+  const nearby = await getApprovedProfessionals();
 
   return (
     <div className="px-5 py-5">

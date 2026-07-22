@@ -1,18 +1,32 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { EnvelopeIcon } from "@/components/ui/icons";
 import { OtpInput } from "@/components/ui/OtpInput";
 import { Button } from "@/components/ui/Button";
+import { verifyOtpAction, resendOtpAction } from "../actions";
 
-export default function VerifyOtpPage() {
-  const router = useRouter();
+function VerifyOtpContent() {
+  const searchParams = useSearchParams();
+  const email = searchParams.get("email") ?? "";
   const [code, setCode] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [resent, setResent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   async function handleConfirm() {
-    // TODO: Supabase Auth verifyOtp() with the entered code.
-    router.push("/home");
+    setError(null);
+    setSubmitting(true);
+    const result = await verifyOtpAction(email, code);
+    setSubmitting(false);
+    if (result?.error) setError(result.error);
+  }
+
+  async function handleResend() {
+    setResent(false);
+    await resendOtpAction(email);
+    setResent(true);
   }
 
   return (
@@ -29,13 +43,38 @@ export default function VerifyOtpPage() {
 
       <OtpInput onComplete={setCode} />
 
-      <Button type="button" fullWidth disabled={code.length !== 6} onClick={handleConfirm} className="mb-3.5">
+      {error && <p className="mb-3 text-center text-xs font-medium text-danger">{error}</p>}
+
+      <Button
+        type="button"
+        fullWidth
+        disabled={code.length !== 6 || submitting}
+        onClick={handleConfirm}
+        className="mb-3.5"
+      >
         تأكيد
       </Button>
 
       <p className="text-center text-[13px] text-text-muted">
-        لم يصلك الرمز؟ <button type="button" className="font-bold text-primary cursor-pointer">إعادة الإرسال</button>
+        {resent ? (
+          "تم إرسال رمز جديد"
+        ) : (
+          <>
+            لم يصلك الرمز؟{" "}
+            <button type="button" onClick={handleResend} className="font-bold text-primary cursor-pointer">
+              إعادة الإرسال
+            </button>
+          </>
+        )}
       </p>
     </div>
+  );
+}
+
+export default function VerifyOtpPage() {
+  return (
+    <Suspense fallback={null}>
+      <VerifyOtpContent />
+    </Suspense>
   );
 }

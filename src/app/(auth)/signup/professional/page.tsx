@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,11 +9,11 @@ import { Button } from "@/components/ui/Button";
 import { UploadTile } from "@/components/ui/UploadTile";
 import { PROFESSIONS, CITIES } from "@/types/domain";
 import { professionalSignupSchema, type ProfessionalSignupInput } from "@/lib/validation/auth";
+import { professionalSignupAction } from "../../actions";
 
 type TextFields = Omit<ProfessionalSignupInput, "idFront" | "idBack" | "workPhotos">;
 
 export default function ProfessionalSignupPage() {
-  const router = useRouter();
   const [idFront, setIdFront] = useState<File | null>(null);
   const [idBack, setIdBack] = useState<File | null>(null);
   const [workPhotos, setWorkPhotos] = useState<(File | null)[]>([null, null, null]);
@@ -42,8 +41,21 @@ export default function ProfessionalSignupPage() {
       return;
     }
     setSubmitting(true);
-    // TODO: Supabase Auth signUp (role=professional) + upload files to Storage + insert professional_profiles (status=pending_review)
-    router.push("/pending");
+
+    const formData = new FormData();
+    formData.set("fullName", parsed.data.fullName);
+    formData.set("email", parsed.data.email);
+    formData.set("password", parsed.data.password);
+    formData.set("phone", parsed.data.phone);
+    formData.set("profession", parsed.data.profession);
+    formData.set("city", parsed.data.city);
+    formData.set("idFront", parsed.data.idFront);
+    formData.set("idBack", parsed.data.idBack);
+    (parsed.data.workPhotos ?? []).forEach((file) => formData.append("workPhotos", file));
+
+    const result = await professionalSignupAction(formData);
+    setSubmitting(false);
+    if (result?.error) setFileError(result.error);
   }
 
   return (

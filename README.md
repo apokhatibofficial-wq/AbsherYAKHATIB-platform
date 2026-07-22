@@ -13,19 +13,18 @@ Two-sided services marketplace PWA connecting professionals (plumbers, electrici
 
 ## Getting started
 
-```bash
-npm install
-npm run dev
-```
+1. Create a Supabase project, then apply the SQL migrations — see `supabase/README.md`.
+2. `cp .env.example .env.local` and fill in your Supabase project URL + keys.
+3. `npm install && npm run dev`, open http://localhost:3000.
 
-Open http://localhost:3000.
+Without step 1–2, the splash screen and auth pages (`/login`, `/signup`, `/signup/professional`, `/verify-otp`, `/pending`) still render, but every page past login needs a real Supabase backend to load data.
 
 ## Project structure
 
 ```
 src/
   app/
-    (auth)/        # login, signup, professional signup, OTP, pending-review
+    (auth)/         # login, signup, professional signup, OTP, pending-review
     (app)/          # customer/professional shell: home, search, favorites, account, profile detail
     (admin)/admin/  # admin console: requests, edits, users
   components/
@@ -33,26 +32,23 @@ src/
     layout/         # BottomNav
     admin/          # AdminSidebar
     professionals/  # ProfessionalRow
-    favorites/      # FavoritesProvider
+    favorites/      # FavoritesProvider (Supabase-backed)
     splash/         # SplashScreen
   lib/
-    auth/           # session helpers (TODO: wire to Supabase)
-    mock/           # mock data used before Supabase is connected
-    validation/      # zod schemas
+    auth/           # session helper (getCurrentUser)
+    supabase/       # client.ts (browser), server.ts (RSC/actions), admin.ts (service-role), queries.ts, types.ts
+    validation/     # zod schemas
     utils/
   types/            # shared domain types
+  proxy.ts          # session refresh + route guards (Next.js 16's renamed middleware.ts)
 supabase/
-  migrations/       # SQL schema + RLS policies
+  migrations/       # SQL schema + RLS policies + storage buckets
 ```
 
 ## Environment variables
 
-Copy `.env.example` to `.env.local` and fill in your Supabase project credentials:
-
-```bash
-cp .env.example .env.local
-```
+See `.env.example` — `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
 
 ## Status
 
-UI for all screens is built against mock data. Supabase Auth/data wiring, RLS policies, and PWA service worker are tracked as the next milestones — see `TODO(supabase)` comments throughout the codebase for exactly what each one replaces.
+All screens are built and wired to Supabase: Auth (email/password + OTP confirmation), Postgres queries under RLS, Storage uploads (ID documents + work photos), and the admin approve/reject RPCs. See `supabase/README.md` to apply the migrations and connect a project.

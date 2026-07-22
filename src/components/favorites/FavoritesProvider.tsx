@@ -1,8 +1,8 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-
-const STORAGE_KEY = "absher:favorites";
+import { createClient } from "@/lib/supabase/client";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 interface FavoritesContextValue {
   favoriteIds: Set<string>;
@@ -12,41 +12,44 @@ interface FavoritesContextValue {
 
 const FavoritesContext = createContext<FavoritesContextValue | null>(null);
 
-/**
- * TODO(supabase): back this with the `favorites` table (per-customer saved professional IDs)
- * instead of localStorage once auth is wired. The hook signature below should stay the same
- * so consuming components don't need to change.
- */
 export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
-  const [hydrated, setHydrated] = useState(false);
+  const [customerId, setCustomerId] = useState<string | null>(null);
 
   useEffect(() => {
-    // Reading localStorage after mount (rather than in a lazy useState initializer) is
-    // intentional here — it keeps server and first-client-render markup identical and
-    // avoids a hydration mismatch.
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      if (raw) setFavoriteIds(new Set(JSON.parse(raw)));
-    } catch {
-      // ignore malformed storage
-    }
-    setHydrated(true);
+    if (!isSupabaseConfigured()) return;
+    const supabase = createClient();
+    let cancelled = false;
+
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user || cancelled) return;
+      setCustomerId(user.id);
+      const { data } = await supabase.from("favorites").select("professional_id").eq("customer_id", user.id);
+      if (!cancelled && data) setFavoriteIds(new Set(data.map((r) => r.professional_id)));
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  useEffect(() => {
-    if (!hydrated) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([...favoriteIds]));
-  }, [favoriteIds, hydrated]);
+  async function toggleFavorite(id: string) {
+    if (!customerId) return;
+    const supabase = createClient();
+    const wasFavorited = favoriteIds.has(id);
 
-  function toggleFavorite(id: string) {
     setFavoriteIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
+      if (wasFavorited) next.delete(id);
       else next.add(id);
       return next;
     });
+
+    if (wasFavorited) {
+      await supabase.from("favorites").delete().eq("customer_id", customerId).eq("professional_id", id);
+    } else {
+      await supabase.from("favorites").insert({ customer_id: customerId, professional_id: id });
+    }
   }
 
   return (

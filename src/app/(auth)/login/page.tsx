@@ -5,16 +5,21 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { loginAction } from "../actions";
 
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setError(null);
     setLoading(true);
-    // TODO: wire to Supabase Auth (signInWithPassword) once project is connected.
-    router.push("/home");
+    const formData = new FormData(e.currentTarget);
+    const result = await loginAction(String(formData.get("email")), String(formData.get("password")));
+    setLoading(false);
+    if (result?.error) setError(result.error);
   }
 
   return (
@@ -25,6 +30,8 @@ export default function LoginPage() {
       <form onSubmit={handleSubmit}>
         <Input label="البريد الإلكتروني" name="email" type="email" placeholder="name@example.com" ltr required />
         <Input label="كلمة المرور" name="password" type="password" placeholder="••••••••" ltr required />
+
+        {error && <p className="mb-3 text-xs font-medium text-danger">{error}</p>}
 
         <Button type="submit" fullWidth disabled={loading} className="mt-2 mb-4">
           تسجيل الدخول
