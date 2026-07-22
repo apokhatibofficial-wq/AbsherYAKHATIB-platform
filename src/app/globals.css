@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-tahrir);
+
+  /* Brand */
+  --color-primary: #0b6b4a;
+  --color-primary-dark: #063d2b;
+  --color-secondary: #0e7c57;
+
+  /* Semantic */
+  --color-success: #1e8449;
+  --color-success-bg: #eff8f1;
+  --color-gold: #c7a044;
+  --color-warning-bg: #fbf3e5;
+  --color-warning-text: #8a6a1e;
+  --color-warning-border: #f0e0bc;
+  --color-danger: #c0392b;
+  --color-danger-bg: #fbf2f1;
+
+  /* Text */
+  --color-text-primary: #1a2e27;
+  --color-text-secondary: #3f5750;
+  --color-text-muted: #6b7a75;
+  --color-text-faint: #9aa6a1;
+
+  /* Structure */
+  --color-border: #e1e5e2;
+  --color-border-light: #edefed;
+  --color-upload-border: #c7cdc9;
+  --color-backdrop: #edefed;
+  --color-surface: #ffffff;
+  --color-app-bg: #f7f8f7;
+  --color-input-bg: #fafbfa;
+
+  /* Radii */
+  --radius-card: 14px;
+  --radius-btn: 12px;
+  --radius-input: 10px;
+  --radius-phone: 36px;
+  --radius-admin: 20px;
+}
+
+@layer base {
+  html,
+  body {
+    height: 100%;
+  }
+
+  body {
+    background: var(--color-backdrop);
+    color: var(--color-text-primary);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  ::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+
+  a {
+    color: var(--color-primary);
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: var(--color-primary-dark);
+  }
+}

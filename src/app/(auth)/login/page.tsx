@@ -1,0 +1,48 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
+
+export default function LoginPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setLoading(true);
+    // TODO: wire to Supabase Auth (signInWithPassword) once project is connected.
+    router.push("/home");
+  }
+
+  return (
+    <div>
+      <h1 className="mb-1 text-xl font-extrabold text-text-primary">تسجيل الدخول</h1>
+      <p className="mb-6 text-[13px] text-text-muted">مرحبًا بعودتك، يرجى إدخال بياناتك</p>
+
+      <form onSubmit={handleSubmit}>
+        <Input label="البريد الإلكتروني" name="email" type="email" placeholder="name@example.com" ltr required />
+        <Input label="كلمة المرور" name="password" type="password" placeholder="••••••••" ltr required />
+
+        <Button type="submit" fullWidth disabled={loading} className="mt-2 mb-4">
+          تسجيل الدخول
+        </Button>
+      </form>
+
+      <p className="mb-5 text-center text-[13px] text-text-muted">
+        ليس لديك حساب؟{" "}
+        <Link href="/signup" className="font-bold text-primary">
+          إنشاء حساب
+        </Link>
+      </p>
+
+      <div className="mb-5 h-px bg-border" />
+
+      <Button type="button" variant="outline" fullWidth onClick={() => router.push("/signup/professional")}>
+        تسجيل الدخول كصاحب مهنة
+      </Button>
+    </div>
+  );
+}
