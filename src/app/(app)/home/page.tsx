@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SearchIcon } from "@/components/ui/icons";
+import { ProfessionIcon } from "@/components/ui/professionIcons";
 import { ProfessionalRow } from "@/components/professionals/ProfessionalRow";
 import { getApprovedProfessionals, getProfessions } from "@/lib/supabase/queries";
 
@@ -29,10 +30,8 @@ export default async function HomePage() {
             href={`/search?profession=${encodeURIComponent(profession)}`}
             className="flex flex-col items-center gap-1.5"
           >
-            <div className="flex h-[52px] w-[52px] items-center justify-center rounded-[14px] bg-success-bg">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0B6B4A" strokeWidth="1.8">
-                <circle cx="12" cy="12" r="9" />
-              </svg>
+            <div className="flex h-[52px] w-[52px] items-center justify-center rounded-[14px] bg-success-bg text-[#006B47]">
+              <ProfessionIcon profession={profession} size={22} />
             </div>
             <span className="text-center text-[11px] font-semibold text-text-secondary">{profession}</span>
           </Link>

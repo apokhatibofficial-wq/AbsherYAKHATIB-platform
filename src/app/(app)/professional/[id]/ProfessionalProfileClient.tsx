@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/Avatar";
 import { BackIcon, PinIcon, EyeIcon, PhoneIcon, StarIcon, CameraIcon } from "@/components/ui/icons";
+import { ProfessionIcon } from "@/components/ui/professionIcons";
 import { StarRating } from "@/components/ui/StarRating";
 import { useToast } from "@/components/ui/Toast";
 import type { Professional } from "@/types/domain";
@@ -47,7 +48,8 @@ export function ProfessionalProfileClient({
         <div className="mb-[18px] flex flex-col items-center text-center">
           <Avatar name={professional.name} id={professional.id} gender={professional.gender} size={84} className="mb-3" />
           <div className="text-[19px] font-extrabold text-text-primary">{professional.name}</div>
-          <div className="mt-2 rounded-full bg-success-bg px-3 py-1 text-[13px] font-bold text-primary">
+          <div className="mt-2 flex items-center gap-1.5 rounded-full bg-success-bg px-3 py-1 text-[13px] font-bold text-[#006B47]">
+            <ProfessionIcon profession={professional.profession} size={15} />
             {professional.profession}
           </div>
         </div>
