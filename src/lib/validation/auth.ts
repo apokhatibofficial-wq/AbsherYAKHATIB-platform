@@ -18,7 +18,14 @@ export const customerSignupSchema = z.object({
 export type CustomerSignupInput = z.infer<typeof customerSignupSchema>;
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
-const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const ACCEPTED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+  "image/heif",
+  "image/gif",
+];
 
 const imageFile = z
   .instanceof(File, { message: "الملف مطلوب" })

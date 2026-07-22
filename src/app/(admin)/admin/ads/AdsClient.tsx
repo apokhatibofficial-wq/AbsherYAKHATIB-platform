@@ -43,7 +43,7 @@ export function AdsClient({ initialAds }: { initialAds: Ad[] }) {
         await attachAdImagesAction(result.id, imagePaths);
       }
       if (filesToUpload.length > 0 && imagePaths.length < filesToUpload.length) {
-        showToast("تمت إضافة الإعلان، لكن بعض الصور لم تُرفع");
+        showToast("تمت إضافة الإعلان، لكن بعض الصور لم تُرفع (تحققي من صيغتها)");
       } else {
         showToast("تمت إضافة الإعلان");
       }
