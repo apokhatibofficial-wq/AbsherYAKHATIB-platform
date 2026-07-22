@@ -5,32 +5,43 @@ import type { IconProps } from "./icons";
 
 const ACCENT = "#2DD4BF";
 const INK = "#161616";
+const COOL_GREEN = "#0B6B4A";
 
 function frame({ size = 22, ...props }: IconProps) {
   return { width: size, height: size, viewBox: "0 0 24 24", ...props };
 }
 
-/** تكييف وتبريد — fan spinning inside a circulation arrow */
+/** تكييف وتبريد — simplified version of the reference photo: a technician on a ladder servicing a wall AC unit. */
 export function CoolingIcon(props: IconProps) {
   return (
     <svg {...frame(props)}>
-      <path
-        d="M12 3a9 9 0 108.4 5.8"
-        stroke={ACCENT}
-        strokeWidth="2"
-        fill="none"
-        strokeLinecap="round"
-      />
-      <path d="M16.2 5.6l3.6.7-.9 3.5z" fill={ACCENT} />
+      {/* wall unit */}
+      <rect x="1.5" y="2.6" width="12" height="6.6" rx="1.4" fill={COOL_GREEN} />
+      <path d="M4.6 9.6v1.4M9.4 9.6v1.4" stroke={COOL_GREEN} strokeWidth="1.3" strokeLinecap="round" />
       <motion.g
-        style={{ transformOrigin: "12px 12px" }}
+        style={{ transformOrigin: "7.5px 5.9px" }}
         animate={{ rotate: 360 }}
-        transition={{ duration: 2.2, repeat: Infinity, ease: "linear" }}
+        transition={{ duration: 2.4, repeat: Infinity, ease: "linear" }}
       >
-        <path d="M12 12C12 8.3 10 6.2 7 6.2c0 3.1 2 5.2 5 5.8z" fill={INK} />
-        <path d="M12 12c3.6.7 6.2-.6 7.1-3.4-3-1-5.8.1-7.1 3.4z" fill={INK} />
-        <path d="M12 12c-.9 3.5.4 6.1 3.6 6.8 1-3-.1-5.7-3.6-6.8z" fill={INK} />
-        <circle cx="12" cy="12" r="1.7" fill="#fff" stroke={INK} strokeWidth="1.3" />
+        <circle cx="7.5" cy="5.9" r="2.5" fill="none" stroke="#fff" strokeWidth="1" />
+        <circle cx="7.5" cy="5.9" r="0.9" fill="#fff" />
+      </motion.g>
+
+      {/* ladder */}
+      <path d="M14.5 21.5l4-13M18 21.5l4-13" stroke={COOL_GREEN} strokeWidth="1.3" strokeLinecap="round" />
+      <path d="M15.4 18.6l4.3-1.3M16.3 15.6l4.3-1.3M17.2 12.6l4-1.2" stroke={COOL_GREEN} strokeWidth="1.1" strokeLinecap="round" />
+
+      {/* technician reaching up to the unit */}
+      <motion.g animate={{ y: [0, -0.6, 0] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}>
+        <circle cx="18.4" cy="8.3" r="1.7" fill={COOL_GREEN} />
+        <path
+          d="M18.4 10.2c-2 0-3.1 1.3-3.4 3.4M18.4 10.2c1.7.2 2.6 1.2 2.9 2.7M13 10.4l2.3 2.6M17.2 12.5l-1.6 6.2M18.4 12.7l1 6"
+          stroke={COOL_GREEN}
+          strokeWidth="1.3"
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </motion.g>
     </svg>
   );
