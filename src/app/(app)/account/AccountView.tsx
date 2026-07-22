@@ -31,7 +31,7 @@ export function AccountView({ user, professional, hasPendingEdit }: AccountViewP
       <h1 className="mb-4 text-[19px] font-extrabold text-text-primary">حسابي</h1>
 
       <div className="mb-[18px] flex items-center gap-3.5 rounded-card border border-border-light bg-white p-4">
-        <Avatar name={user.name} id={user.id} gender={user.gender} size={52} />
+        <Avatar name={user.name} id={user.id} gender={user.gender} avatarUrl={user.avatarUrl} size={52} />
         <div>
           <div className="text-[15px] font-bold text-text-primary">{user.name}</div>
           <div className="text-[12.5px] text-text-muted">{ROLE_LABELS[user.role]}</div>
@@ -90,7 +90,7 @@ function ProfessionalDashboard({
 
       <div className="mb-4 rounded-card border border-border-light bg-white p-4">
         <div className="mb-3.5 flex items-center gap-3">
-          <Avatar name={professional.name} id={professional.id} gender={professional.gender} size={48} />
+          <Avatar name={professional.name} id={professional.id} gender={professional.gender} avatarUrl={professional.avatarUrl} size={48} />
           <div>
             <div className="text-[14.5px] font-bold text-text-primary">{professional.name}</div>
             <div className="text-[12.5px] text-text-muted">

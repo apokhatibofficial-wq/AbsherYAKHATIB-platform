@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { cn } from "@/lib/utils/cn";
 import { FemaleAvatarIllustration, MaleAvatarIllustration } from "./GenderAvatar";
 import type { Gender } from "@/types/domain";
@@ -20,16 +21,39 @@ interface AvatarProps {
   name: string;
   id: string | number;
   gender?: Gender | null;
+  avatarUrl?: string | null;
   size?: number;
   className?: string;
 }
 
-export function Avatar({ name, id, gender, size = 48, className }: AvatarProps) {
-  if (gender === "female" || gender === "male") {
-    const Illustration = gender === "female" ? FemaleAvatarIllustration : MaleAvatarIllustration;
+export function Avatar({ name, id, gender, avatarUrl, size = 48, className }: AvatarProps) {
+  if (avatarUrl) {
     return (
       <div className={cn("flex-none overflow-hidden rounded-full", className)} style={{ width: size, height: size }}>
-        <Illustration size={size} />
+        <Image
+          src={avatarUrl}
+          alt={name}
+          width={size}
+          height={size}
+          className="h-full w-full object-cover"
+          unoptimized
+        />
+      </div>
+    );
+  }
+
+  if (gender === "female") {
+    return (
+      <div className={cn("flex-none overflow-hidden rounded-full", className)} style={{ width: size, height: size }}>
+        <FemaleAvatarIllustration size={size} />
+      </div>
+    );
+  }
+
+  if (gender === "male") {
+    return (
+      <div className={cn("flex-none overflow-hidden rounded-full", className)} style={{ width: size, height: size }}>
+        <MaleAvatarIllustration size={size} />
       </div>
     );
   }

@@ -46,7 +46,7 @@ export function ProfessionalProfileClient({
 
       <div className="px-5 py-6">
         <div className="mb-[18px] flex flex-col items-center text-center">
-          <Avatar name={professional.name} id={professional.id} gender={professional.gender} size={84} className="mb-3" />
+          <Avatar name={professional.name} id={professional.id} gender={professional.gender} avatarUrl={professional.avatarUrl} size={84} className="mb-3" />
           <div className="text-[19px] font-extrabold text-text-primary">{professional.name}</div>
           <div className="mt-2 flex items-center gap-1.5 rounded-full bg-success-bg px-3 py-1 text-[13px] font-bold text-[#006B47]">
             <ProfessionIcon profession={professional.profession} size={15} />

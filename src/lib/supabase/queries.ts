@@ -30,12 +30,13 @@ function mapProfessional(row: ProfessionalRow): Professional {
     avgRating: null,
     ratingCount: 0,
     gender: null,
+    avatarUrl: null,
   };
 }
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
-/** Merges in average rating + gender (from `profiles`, since professional_profiles.id === profiles.id). */
+/** Merges in average rating + gender/avatar (from `profiles`, since professional_profiles.id === profiles.id). */
 async function enrichProfessionals(
   supabase: SupabaseServerClient,
   professionals: Professional[]
@@ -45,7 +46,7 @@ async function enrichProfessionals(
 
   const [{ data: ratingRows }, { data: profileRows }] = await Promise.all([
     supabase.from("ratings").select("professional_id, stars").in("professional_id", ids),
-    supabase.from("profiles").select("id, gender").in("id", ids),
+    supabase.from("profiles").select("id, gender, avatar_url").in("id", ids),
   ]);
 
   const ratingById = new Map<string, { sum: number; count: number }>();
@@ -55,15 +56,17 @@ async function enrichProfessionals(
     entry.count += 1;
     ratingById.set(row.professional_id, entry);
   }
-  const genderById = new Map((profileRows ?? []).map((r) => [r.id, r.gender]));
+  const profileById = new Map((profileRows ?? []).map((r) => [r.id, r]));
 
   return professionals.map((p) => {
     const rating = ratingById.get(p.id);
+    const profile = profileById.get(p.id);
     return {
       ...p,
       avgRating: rating ? Math.round((rating.sum / rating.count) * 10) / 10 : null,
       ratingCount: rating?.count ?? 0,
-      gender: genderById.get(p.id) ?? null,
+      gender: profile?.gender ?? null,
+      avatarUrl: profile?.avatar_url ?? null,
     };
   });
 }

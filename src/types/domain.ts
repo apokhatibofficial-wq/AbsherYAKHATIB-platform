@@ -38,6 +38,7 @@ export interface Professional {
   avgRating: number | null;
   ratingCount: number;
   gender: Gender | null;
+  avatarUrl: string | null;
 }
 
 export interface PendingEdit {

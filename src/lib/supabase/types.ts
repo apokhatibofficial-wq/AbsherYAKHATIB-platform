@@ -22,6 +22,7 @@ export interface Database {
           status: AccountStatusDb;
           created_at: string;
           gender: GenderDb | null;
+          avatar_url: string | null;
         };
         Insert: {
           id: string;
@@ -30,6 +31,7 @@ export interface Database {
           email: string;
           status?: AccountStatusDb;
           gender?: GenderDb | null;
+          avatar_url?: string | null;
         };
         Update: Partial<{
           role: UserRoleDb;
@@ -37,6 +39,7 @@ export interface Database {
           email: string;
           status: AccountStatusDb;
           gender: GenderDb | null;
+          avatar_url: string | null;
         }>;
         Relationships: [];
       };
