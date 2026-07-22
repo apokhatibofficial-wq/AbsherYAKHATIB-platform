@@ -66,6 +66,10 @@ export async function createAdAction(
   formData: FormData
 ): Promise<{ id?: string; error?: string }> {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "انتهت جلستك، سجّلي الدخول من جديد وحاولي مجددًا" };
 
   const name = (formData.get("name") as string)?.trim() || null;
   const externalUrl = (formData.get("externalUrl") as string)?.trim() || null;

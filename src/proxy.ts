@@ -46,7 +46,15 @@ export default async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/home", request.url));
   }
 
-  if (pathname.startsWith("/admin") && user) {
+  // Server Actions (Next-Action header) POST to the same path as the page
+  // they're called from. A redirect here would break the Server Action
+  // response the client expects, surfacing as an opaque client-side
+  // exception instead of the actual RLS/is_admin() error. Real enforcement
+  // for mutations already happens at the RLS/RPC layer regardless — this
+  // check is only a navigation-time redirect for non-admins landing on the
+  // page, so it's safe to skip for action requests.
+  const isServerAction = request.headers.has("next-action");
+  if (pathname.startsWith("/admin") && user && !isServerAction) {
     const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
     if (profile?.role !== "admin") {
       return NextResponse.redirect(new URL("/home", request.url));
