@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { AccountStatusDb } from "@/lib/supabase/types";
+import { SOCIAL_PLATFORMS } from "@/lib/ads";
 
 export async function approveRequestAction(professionalId: string) {
   const supabase = await createClient();
@@ -57,5 +58,58 @@ export async function removeFeaturedAction(professionalId: string) {
   const { error } = await supabase.from("featured_listings").delete().eq("professional_id", professionalId);
   if (error) return { error: "تعذر إزالة صاحب المهنة من القائمة" };
   revalidatePath("/admin/featured");
+  return {};
+}
+
+export async function createAdAction(formData: FormData) {
+  const supabase = await createClient();
+
+  const name = (formData.get("name") as string)?.trim() || null;
+  const externalUrl = (formData.get("externalUrl") as string)?.trim() || null;
+  const phone = (formData.get("phone") as string)?.trim() || null;
+  const locationUrl = (formData.get("locationUrl") as string)?.trim() || null;
+
+  const socialLinks: Record<string, string> = {};
+  for (const { key } of SOCIAL_PLATFORMS) {
+    const value = (formData.get(`social_${key}`) as string)?.trim();
+    if (value) socialLinks[key] = value;
+  }
+
+  const images = formData.getAll("images").filter((f): f is File => f instanceof File && f.size > 0);
+
+  const { data: ad, error } = await supabase
+    .from("ads")
+    .insert({ name, external_url: externalUrl, phone, location_url: locationUrl, social_links: socialLinks })
+    .select("id")
+    .single();
+  if (error || !ad) return { error: "تعذر إنشاء الإعلان" };
+
+  const imagePaths: string[] = [];
+  for (const file of images) {
+    const ext = file.name.split(".").pop() ?? "jpg";
+    const path = `${ad.id}/${crypto.randomUUID()}.${ext}`;
+    const { error: uploadError } = await supabase.storage.from("ads").upload(path, file);
+    if (!uploadError) imagePaths.push(path);
+  }
+
+  if (imagePaths.length > 0) {
+    await supabase.from("ads").update({ image_paths: imagePaths }).eq("id", ad.id);
+  }
+
+  revalidatePath("/admin/ads");
+  revalidatePath("/ads");
+  return {};
+}
+
+export async function deleteAdAction(adId: string) {
+  const supabase = await createClient();
+  const { data: ad } = await supabase.from("ads").select("image_paths").eq("id", adId).single();
+  if (ad?.image_paths?.length) {
+    await supabase.storage.from("ads").remove(ad.image_paths);
+  }
+  const { error } = await supabase.from("ads").delete().eq("id", adId);
+  if (error) return { error: "تعذر حذف الإعلان" };
+  revalidatePath("/admin/ads");
+  revalidatePath("/ads");
   return {};
 }

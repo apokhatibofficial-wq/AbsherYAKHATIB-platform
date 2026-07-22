@@ -3,6 +3,29 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
+export async function changeAvatarAction(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "غير مصرح" };
+
+  const file = formData.get("avatar");
+  if (!(file instanceof File) || file.size === 0) return { error: "يرجى اختيار صورة" };
+
+  const ext = file.name.split(".").pop() ?? "jpg";
+  const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
+  const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file);
+  if (uploadError) return { error: "تعذر رفع الصورة" };
+
+  const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+  const { error: rpcError } = await supabase.rpc("update_my_avatar", { p_avatar_url: pub.publicUrl });
+  if (rpcError) return { error: "تعذر تحديث الصورة" };
+
+  revalidatePath("/account");
+  return {};
+}
+
 type EditableField = "description" | "phone";
 
 export async function submitProfileEditsAction(input: {

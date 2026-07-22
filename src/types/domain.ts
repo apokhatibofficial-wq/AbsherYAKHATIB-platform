@@ -52,6 +52,17 @@ export interface PendingEdit {
   submittedAt: string;
 }
 
+export interface Ad {
+  id: string;
+  name: string | null;
+  externalUrl: string | null;
+  phone: string | null;
+  locationUrl: string | null;
+  socialLinks: Record<string, string>;
+  imageUrls: string[];
+  createdAt: string;
+}
+
 export interface AdminUser {
   id: string;
   name: string;

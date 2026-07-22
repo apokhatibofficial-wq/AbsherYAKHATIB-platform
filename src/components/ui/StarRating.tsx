@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { StarIcon } from "./icons";
 import { cn } from "@/lib/utils/cn";
 
 interface StarRatingProps {
@@ -11,7 +10,7 @@ interface StarRatingProps {
   readOnly?: boolean;
 }
 
-export function StarRating({ value, onRate, size = 22, readOnly }: StarRatingProps) {
+export function StarRating({ value, onRate, size = 26, readOnly }: StarRatingProps) {
   const [hovered, setHovered] = useState<number | null>(null);
   const display = hovered ?? value ?? 0;
 
@@ -25,9 +24,14 @@ export function StarRating({ value, onRate, size = 22, readOnly }: StarRatingPro
           onMouseEnter={() => !readOnly && setHovered(n)}
           onMouseLeave={() => !readOnly && setHovered(null)}
           onClick={() => !readOnly && onRate?.(n)}
-          className={cn("text-gold", !readOnly && "cursor-pointer")}
+          className={cn(
+            "font-extrabold leading-none text-gold",
+            n > display && "opacity-30",
+            !readOnly && "cursor-pointer"
+          )}
+          style={{ fontSize: size }}
         >
-          <StarIcon size={size} filled={n <= display} />
+          ★
         </button>
       ))}
     </div>

@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { SearchIcon } from "@/components/ui/icons";
-import { ProfessionIcon } from "@/components/ui/professionIcons";
 import { ProfessionalRow } from "@/components/professionals/ProfessionalRow";
 import { getApprovedProfessionals, getProfessions } from "@/lib/supabase/queries";
 
@@ -18,22 +16,18 @@ export default async function HomePage() {
         href="/search"
         className="mb-[22px] flex items-center gap-2.5 rounded-card border-[1.5px] border-border bg-white px-4 py-3.5"
       >
-        <SearchIcon size={18} className="text-text-faint" />
         <span className="text-sm text-text-faint">ابحث عن مهنة أو صاحب خدمة...</span>
       </Link>
 
       <h2 className="mb-3 text-sm font-bold text-text-primary">تصفح حسب المهنة</h2>
-      <div className="mb-[26px] grid grid-cols-4 gap-2.5">
+      <div className="mb-[26px] grid grid-cols-2 gap-2.5">
         {professions.map((profession) => (
           <Link
             key={profession}
             href={`/search?profession=${encodeURIComponent(profession)}`}
-            className="flex flex-col items-center gap-1.5"
+            className="flex items-center justify-center rounded-[14px] bg-success-bg px-2 py-3.5 text-center text-[13px] font-extrabold text-primary-dark"
           >
-            <div className="flex h-14 w-14 items-center justify-center rounded-[14px] bg-success-bg">
-              <ProfessionIcon profession={profession} size={30} />
-            </div>
-            <span className="text-center text-[11px] font-semibold text-text-secondary">{profession}</span>
+            {profession}
           </Link>
         ))}
       </div>

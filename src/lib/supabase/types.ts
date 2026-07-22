@@ -196,6 +196,37 @@ export interface Database {
           },
         ];
       };
+      ads: {
+        Row: {
+          id: string;
+          name: string | null;
+          external_url: string | null;
+          phone: string | null;
+          location_url: string | null;
+          social_links: Record<string, string>;
+          image_paths: string[];
+          created_at: string;
+          created_by: string | null;
+        };
+        Insert: {
+          name?: string | null;
+          external_url?: string | null;
+          phone?: string | null;
+          location_url?: string | null;
+          social_links?: Record<string, string>;
+          image_paths?: string[];
+          created_by?: string | null;
+        };
+        Update: Partial<{
+          name: string | null;
+          external_url: string | null;
+          phone: string | null;
+          location_url: string | null;
+          social_links: Record<string, string>;
+          image_paths: string[];
+        }>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -206,6 +237,7 @@ export interface Database {
       approve_pending_edit: { Args: { p_edit_id: string }; Returns: undefined };
       reject_pending_edit: { Args: { p_edit_id: string }; Returns: undefined };
       set_user_status: { Args: { p_user_id: string; p_status: AccountStatusDb }; Returns: undefined };
+      update_my_avatar: { Args: { p_avatar_url: string }; Returns: undefined };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;

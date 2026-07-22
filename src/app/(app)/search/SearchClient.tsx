@@ -2,7 +2,6 @@
 
 import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { SearchIcon } from "@/components/ui/icons";
 import { Chip } from "@/components/ui/Chip";
 import { ProfessionalRow } from "@/components/professionals/ProfessionalRow";
 import { CITIES } from "@/types/domain";
@@ -36,7 +35,6 @@ function SearchContent({ professionals, professions }: { professionals: Professi
       <h1 className="mb-4 text-[19px] font-extrabold text-text-primary">البحث</h1>
 
       <div className="mb-4 flex items-center gap-2.5 rounded-card border-[1.5px] border-border bg-white px-4 py-3.5">
-        <SearchIcon size={18} className="text-text-faint" />
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}

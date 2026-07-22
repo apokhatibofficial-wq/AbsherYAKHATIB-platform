@@ -14,6 +14,7 @@ interface AdminSidebarProps {
 const NAV = [
   { href: "/admin/requests", label: "طلبات التسجيل", countKey: "requestsCount" as const },
   { href: "/admin/edits", label: "تعديلات الملفات", countKey: "editsCount" as const },
+  { href: "/admin/ads", label: "الإعلانات", countKey: null },
   { href: "/admin/featured", label: "المميزون", countKey: null },
   { href: "/admin/users", label: "المستخدمون", countKey: null },
 ];

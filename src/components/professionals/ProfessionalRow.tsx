@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Avatar } from "@/components/ui/Avatar";
-import { ForwardIcon, StarIcon } from "@/components/ui/icons";
 import type { Professional } from "@/types/domain";
 
 export function ProfessionalRow({ professional }: { professional: Professional }) {
@@ -17,12 +16,8 @@ export function ProfessionalRow({ professional }: { professional: Professional }
         </div>
       </div>
       {professional.avgRating !== null && (
-        <div className="flex items-center gap-1 text-[12.5px] font-bold text-gold">
-          <StarIcon size={14} filled />
-          {professional.avgRating}
-        </div>
+        <div className="text-[12.5px] font-extrabold text-gold">★ {professional.avgRating}</div>
       )}
-      <ForwardIcon size={16} className="text-upload-border" />
     </Link>
   );
 }

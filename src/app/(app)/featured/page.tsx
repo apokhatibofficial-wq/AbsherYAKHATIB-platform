@@ -1,4 +1,3 @@
-import { StarIcon } from "@/components/ui/icons";
 import { ProfessionalRow } from "@/components/professionals/ProfessionalRow";
 import { getFeaturedProfessionals } from "@/lib/supabase/queries";
 
@@ -12,7 +11,6 @@ export default async function FeaturedPage() {
 
       {featured.length === 0 ? (
         <div className="flex flex-col items-center px-5 py-[70px] text-center">
-          <StarIcon size={46} className="mb-3.5 text-upload-border" />
           <p className="text-sm text-text-muted">لا يوجد أصحاب مهن مميّزون حاليًا</p>
         </div>
       ) : (

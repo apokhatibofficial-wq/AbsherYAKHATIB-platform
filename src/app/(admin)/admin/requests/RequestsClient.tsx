@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { IdCardIcon } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/Toast";
 import { approveRequestAction, rejectRequestAction } from "../actions";
 import type { AdminProfessionalRequest } from "@/lib/supabase/queries";
@@ -14,7 +13,7 @@ function DocThumb({ url }: { url?: string | null }) {
         // eslint-disable-next-line @next/next/no-img-element
         <img src={url} alt="مستند" className="h-full w-full object-cover" />
       ) : (
-        <IdCardIcon size={18} className="text-text-faint" />
+        <span className="text-[10.5px] font-bold text-text-faint">لا صورة</span>
       )}
     </div>
   );

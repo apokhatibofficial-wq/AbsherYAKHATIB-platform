@@ -1,17 +1,16 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Textarea, Input } from "@/components/ui/Input";
 import { UploadTile } from "@/components/ui/UploadTile";
-import { ShieldIcon } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/Toast";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import type { CurrentUser } from "@/lib/auth/session";
 import type { Professional } from "@/types/domain";
-import { submitProfileEditsAction } from "./actions";
+import { submitProfileEditsAction, changeAvatarAction } from "./actions";
 
 const ROLE_LABELS: Record<CurrentUser["role"], string> = {
   customer: "عميل",
@@ -25,13 +24,66 @@ interface AccountViewProps {
   hasPendingEdit: boolean;
 }
 
+function AvatarUploader({
+  name,
+  id,
+  gender,
+  avatarUrl,
+  size = 52,
+}: {
+  name: string;
+  id: string;
+  gender: CurrentUser["gender"];
+  avatarUrl: string | null;
+  size?: number;
+}) {
+  const inputId = useId();
+  const router = useRouter();
+  const { showToast } = useToast();
+  const [uploading, setUploading] = useState(false);
+
+  async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const formData = new FormData();
+    formData.set("avatar", file);
+    const result = await changeAvatarAction(formData);
+    setUploading(false);
+    e.target.value = "";
+    if (result?.error) {
+      showToast(result.error);
+      return;
+    }
+    showToast("تم تحديث الصورة");
+    router.refresh();
+  }
+
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <Avatar name={name} id={id} gender={gender} avatarUrl={avatarUrl} size={size} />
+      <label htmlFor={inputId} className="text-[11px] font-extrabold text-primary cursor-pointer">
+        {uploading ? "جارٍ الرفع..." : "تغيير الصورة"}
+      </label>
+      <input
+        id={inputId}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        disabled={uploading}
+        onChange={handleChange}
+      />
+    </div>
+  );
+}
+
 export function AccountView({ user, professional, hasPendingEdit }: AccountViewProps) {
   return (
     <div className="px-5 py-5">
       <h1 className="mb-4 text-[19px] font-extrabold text-text-primary">حسابي</h1>
 
       <div className="mb-[18px] flex items-center gap-3.5 rounded-card border border-border-light bg-white p-4">
-        <Avatar name={user.name} id={user.id} gender={user.gender} avatarUrl={user.avatarUrl} size={52} />
+        <AvatarUploader name={user.name} id={user.id} gender={user.gender} avatarUrl={user.avatarUrl} size={52} />
         <div>
           <div className="text-[15px] font-bold text-text-primary">{user.name}</div>
           <div className="text-[12.5px] text-text-muted">{ROLE_LABELS[user.role]}</div>
@@ -131,7 +183,6 @@ function AdminEntry() {
         onClick={() => router.push("/admin/requests")}
         className="mb-3"
       >
-        <ShieldIcon size={17} />
         الدخول إلى لوحة الإدارة
       </Button>
       <LogoutButton />

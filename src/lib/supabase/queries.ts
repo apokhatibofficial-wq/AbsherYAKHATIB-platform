@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { City, Profession, Professional, PendingEdit, AdminUser } from "@/types/domain";
+import type { City, Profession, Professional, PendingEdit, AdminUser, Ad } from "@/types/domain";
 
 type ProfessionalRow = {
   id: string;
@@ -162,6 +162,25 @@ export async function getMyPendingEdit(professionalId: string) {
     .limit(1)
     .maybeSingle();
   return data;
+}
+
+export async function getAds(): Promise<Ad[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("ads").select("*").order("created_at", { ascending: false });
+  if (error || !data) return [];
+
+  return data.map((row) => ({
+    id: row.id,
+    name: row.name,
+    externalUrl: row.external_url,
+    phone: row.phone,
+    locationUrl: row.location_url,
+    socialLinks: (row.social_links as Record<string, string>) ?? {},
+    imageUrls: (row.image_paths ?? []).map(
+      (path) => supabase.storage.from("ads").getPublicUrl(path).data.publicUrl
+    ),
+    createdAt: row.created_at,
+  }));
 }
 
 // --- Admin queries ---------------------------------------------------------

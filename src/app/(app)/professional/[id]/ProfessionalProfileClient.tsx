@@ -3,8 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/Avatar";
-import { BackIcon, PinIcon, EyeIcon, PhoneIcon, StarIcon, CameraIcon } from "@/components/ui/icons";
-import { ProfessionIcon } from "@/components/ui/professionIcons";
 import { StarRating } from "@/components/ui/StarRating";
 import { useToast } from "@/components/ui/Toast";
 import type { Professional } from "@/types/domain";
@@ -37,9 +35,9 @@ export function ProfessionalProfileClient({
         <button
           type="button"
           onClick={() => router.back()}
-          className="flex h-[34px] w-[34px] items-center justify-center rounded-[10px] bg-[#F0F2F0] cursor-pointer"
+          className="flex h-[34px] items-center justify-center rounded-[10px] bg-[#F0F2F0] px-3 text-sm font-extrabold text-text-primary cursor-pointer"
         >
-          <BackIcon size={18} />
+          رجوع
         </button>
         <h1 className="text-base font-bold text-text-primary">الملف الشخصي</h1>
       </div>
@@ -48,25 +46,24 @@ export function ProfessionalProfileClient({
         <div className="mb-[18px] flex flex-col items-center text-center">
           <Avatar name={professional.name} id={professional.id} gender={professional.gender} avatarUrl={professional.avatarUrl} size={84} className="mb-3" />
           <div className="text-[19px] font-extrabold text-text-primary">{professional.name}</div>
-          <div className="mt-2 flex items-center gap-1.5 rounded-full bg-success-bg px-3 py-1 text-[13px] font-bold text-[#006B47]">
-            <ProfessionIcon profession={professional.profession} size={15} />
+          <div className="mt-2 rounded-full bg-success-bg px-3 py-1 text-[13px] font-bold text-[#006B47]">
             {professional.profession}
           </div>
         </div>
 
         <div className="mb-[18px] flex justify-around rounded-card border border-border-light bg-white py-3.5">
           <div className="text-center">
-            <PinIcon size={16} className="mx-auto mb-1 text-text-muted" />
+            <div className="mb-1 text-[11px] font-bold text-text-muted">المدينة</div>
             <div className="text-[13px] font-bold text-text-primary">{professional.city}</div>
           </div>
           <div className="w-px bg-border-light" />
           <div className="text-center">
-            <EyeIcon size={16} className="mx-auto mb-1 text-text-muted" />
-            <div className="text-[13px] font-bold text-text-primary">{professional.viewCount} مشاهدة</div>
+            <div className="mb-1 text-[11px] font-bold text-text-muted">المشاهدات</div>
+            <div className="text-[13px] font-bold text-text-primary">{professional.viewCount}</div>
           </div>
           <div className="w-px bg-border-light" />
           <div className="text-center">
-            <StarIcon size={16} filled className="mx-auto mb-1 text-gold" />
+            <div className="mb-1 text-[11px] font-bold text-text-muted">التقييم</div>
             <div className="text-[13px] font-bold text-text-primary">
               {professional.avgRating !== null ? `${professional.avgRating} (${professional.ratingCount})` : "لا يوجد"}
             </div>
@@ -76,9 +73,8 @@ export function ProfessionalProfileClient({
         <div className="mb-[22px] flex gap-2.5">
           <a
             href={`tel:${professional.phone}`}
-            className="flex flex-1 items-center justify-center gap-2 rounded-btn bg-primary py-3.5 text-sm font-bold text-white"
+            className="flex flex-1 items-center justify-center rounded-btn bg-primary py-3.5 text-sm font-bold text-white"
           >
-            <PhoneIcon size={16} />
             اتصال {professional.phone}
           </a>
           {professional.locationUrl && (
@@ -86,9 +82,9 @@ export function ProfessionalProfileClient({
               href={professional.locationUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex w-12 items-center justify-center rounded-btn border-[1.5px] border-border bg-white cursor-pointer"
+              className="flex items-center justify-center rounded-btn border-[1.5px] border-border bg-white px-4 text-sm font-extrabold text-primary cursor-pointer"
             >
-              <PinIcon size={20} className="text-primary" />
+              الموقع
             </a>
           )}
         </div>
@@ -114,7 +110,7 @@ export function ProfessionalProfileClient({
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={url} alt="" className="h-full w-full rounded-xl object-cover" />
                 ) : (
-                  <CameraIcon size={24} className="text-[#B7BFBB]" />
+                  <span className="text-[11px] font-bold text-[#B7BFBB]">لا صورة</span>
                 )}
               </div>
             ))}

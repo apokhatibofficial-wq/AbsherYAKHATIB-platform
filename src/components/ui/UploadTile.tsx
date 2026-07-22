@@ -2,7 +2,6 @@
 
 import { useId, useState } from "react";
 import Image from "next/image";
-import { PlusIcon } from "./icons";
 import { cn } from "@/lib/utils/cn";
 
 interface UploadTileProps {
@@ -49,7 +48,7 @@ export function UploadTile({
         <Image src={previewUrl} alt={label ?? "معاينة"} width={120} height={height} className="h-full w-full object-cover" unoptimized />
       ) : (
         <>
-          <PlusIcon size={18} />
+          <span className="text-xl font-extrabold leading-none">+</span>
           {label && <span className="text-[11px]">{label}</span>}
         </>
       )}

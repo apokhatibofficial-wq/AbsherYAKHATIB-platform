@@ -2,7 +2,6 @@
 
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { EnvelopeIcon } from "@/components/ui/icons";
 import { OtpInput } from "@/components/ui/OtpInput";
 import { Button } from "@/components/ui/Button";
 import { verifyOtpAction, resendOtpAction } from "../actions";
@@ -31,11 +30,6 @@ function VerifyOtpContent() {
 
   return (
     <div>
-      <div className="mb-4 flex justify-center">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-success-bg">
-          <EnvelopeIcon size={26} className="text-primary" />
-        </div>
-      </div>
       <h1 className="mb-1 text-center text-xl font-extrabold text-text-primary">تفعيل الحساب</h1>
       <p className="mb-6 text-center text-[13px] leading-[1.7] text-text-muted">
         تم إرسال رمز التحقق إلى بريدك الإلكتروني، يرجى إدخاله لإكمال التسجيل
