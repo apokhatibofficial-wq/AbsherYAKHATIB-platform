@@ -25,16 +25,21 @@ export function AdsClient({ initialAds }: { initialAds: Ad[] }) {
     images.forEach((file) => {
       if (file) formData.append("images", file);
     });
-    const result = await createAdAction(formData);
-    setSubmitting(false);
-    if (result?.error) {
-      showToast(result.error);
-      return;
+    try {
+      const result = await createAdAction(formData);
+      if (result?.error) {
+        showToast(result.error);
+        return;
+      }
+      setImages(Array(IMAGE_SLOTS).fill(null));
+      setFormKey((k) => k + 1);
+      showToast("تمت إضافة الإعلان");
+      router.refresh();
+    } catch {
+      showToast("تعذر إضافة الإعلان، تحققي من حجم الصور وحاولي مجددًا");
+    } finally {
+      setSubmitting(false);
     }
-    setImages(Array(IMAGE_SLOTS).fill(null));
-    setFormKey((k) => k + 1);
-    showToast("تمت إضافة الإعلان");
-    router.refresh();
   }
 
   async function handleDelete(adId: string) {

@@ -46,17 +46,22 @@ function AvatarUploader({
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
-    const formData = new FormData();
-    formData.set("avatar", file);
-    const result = await changeAvatarAction(formData);
-    setUploading(false);
-    e.target.value = "";
-    if (result?.error) {
-      showToast(result.error);
-      return;
+    try {
+      const formData = new FormData();
+      formData.set("avatar", file);
+      const result = await changeAvatarAction(formData);
+      if (result?.error) {
+        showToast(result.error);
+        return;
+      }
+      showToast("تم تحديث الصورة");
+      router.refresh();
+    } catch {
+      showToast("تعذر رفع الصورة، تحققي من حجمها وحاولي مجددًا");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
     }
-    showToast("تم تحديث الصورة");
-    router.refresh();
   }
 
   return (
