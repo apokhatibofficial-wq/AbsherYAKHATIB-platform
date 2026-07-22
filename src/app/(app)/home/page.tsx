@@ -30,8 +30,8 @@ export default async function HomePage() {
             href={`/search?profession=${encodeURIComponent(profession)}`}
             className="flex flex-col items-center gap-1.5"
           >
-            <div className="flex h-[52px] w-[52px] items-center justify-center rounded-[14px] bg-success-bg text-[#006B47]">
-              <ProfessionIcon profession={profession} size={22} />
+            <div className="flex h-14 w-14 items-center justify-center rounded-[14px] bg-success-bg">
+              <ProfessionIcon profession={profession} size={30} />
             </div>
             <span className="text-center text-[11px] font-semibold text-text-secondary">{profession}</span>
           </Link>
