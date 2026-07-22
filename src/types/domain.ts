@@ -21,6 +21,7 @@ export type UserRole = "customer" | "professional" | "admin";
 export type AccountStatus = "active" | "suspended";
 export type ProfessionalStatus = "pending_review" | "approved" | "rejected";
 export type EditRequestStatus = "pending" | "approved" | "rejected";
+export type Gender = "male" | "female";
 
 export interface Professional {
   id: string;
@@ -36,6 +37,7 @@ export interface Professional {
   locationUrl: string | null;
   avgRating: number | null;
   ratingCount: number;
+  gender: Gender | null;
 }
 
 export interface PendingEdit {

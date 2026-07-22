@@ -48,6 +48,7 @@ export async function customerSignupAction(input: {
   fullName: string;
   email: string;
   password: string;
+  gender: string;
 }): Promise<ActionResult> {
   const parsed = customerSignupSchema.safeParse(input);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "بيانات غير صحيحة" };
@@ -56,7 +57,7 @@ export async function customerSignupAction(input: {
   const { error } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
-    options: { data: { full_name: parsed.data.fullName, role: "customer" } },
+    options: { data: { full_name: parsed.data.fullName, role: "customer", gender: parsed.data.gender } },
   });
   if (error) return { error: error.message };
 
@@ -83,6 +84,7 @@ export async function professionalSignupAction(formData: FormData): Promise<Acti
     email: formData.get("email"),
     password: formData.get("password"),
     phone: formData.get("phone"),
+    gender: formData.get("gender"),
     profession: formData.get("profession"),
     city: formData.get("city"),
     locationUrl: formData.get("locationUrl") || undefined,
@@ -91,7 +93,8 @@ export async function professionalSignupAction(formData: FormData): Promise<Acti
     workPhotos: formData.getAll("workPhotos").filter((f): f is File => f instanceof File && f.size > 0),
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "بيانات غير صحيحة" };
-  const { fullName, email, password, phone, profession, city, locationUrl, idFront, idBack, workPhotos } = parsed.data;
+  const { fullName, email, password, phone, gender, profession, city, locationUrl, idFront, idBack, workPhotos } =
+    parsed.data;
 
   // Regular signUp so the professional gets the normal confirmation email;
   // the service-role client below writes the related rows immediately,
@@ -100,7 +103,7 @@ export async function professionalSignupAction(formData: FormData): Promise<Acti
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { full_name: fullName, role: "professional" } },
+    options: { data: { full_name: fullName, role: "professional", gender } },
   });
   if (error || !data.user) return { error: error?.message ?? "فشل إنشاء الحساب" };
   const userId = data.user.id;

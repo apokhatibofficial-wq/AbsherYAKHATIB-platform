@@ -8,6 +8,7 @@ export type AccountStatusDb = "active" | "suspended";
 export type ProfessionalStatusDb = "pending_review" | "approved" | "rejected";
 export type EditStatusDb = "pending" | "approved" | "rejected";
 export type DocumentKindDb = "id_front" | "id_back" | "work_photo";
+export type GenderDb = "male" | "female";
 
 export interface Database {
   public: {
@@ -20,6 +21,7 @@ export interface Database {
           email: string;
           status: AccountStatusDb;
           created_at: string;
+          gender: GenderDb | null;
         };
         Insert: {
           id: string;
@@ -27,12 +29,14 @@ export interface Database {
           full_name: string;
           email: string;
           status?: AccountStatusDb;
+          gender?: GenderDb | null;
         };
         Update: Partial<{
           role: UserRoleDb;
           full_name: string;
           email: string;
           status: AccountStatusDb;
+          gender: GenderDb | null;
         }>;
         Relationships: [];
       };

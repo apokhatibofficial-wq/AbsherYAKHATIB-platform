@@ -1,11 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
-import type { UserRole } from "@/types/domain";
+import type { UserRole, Gender } from "@/types/domain";
 
 export interface CurrentUser {
   id: string;
   name: string;
   email: string;
   role: UserRole;
+  gender: Gender | null;
 }
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
@@ -17,7 +18,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, email, role")
+    .select("full_name, email, role, gender")
     .eq("id", user.id)
     .single();
 
@@ -28,5 +29,6 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     name: profile.full_name,
     email: profile.email,
     role: profile.role,
+    gender: profile.gender,
   };
 }

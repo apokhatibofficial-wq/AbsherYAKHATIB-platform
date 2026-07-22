@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Input, Select } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { UploadTile } from "@/components/ui/UploadTile";
+import { GenderPicker } from "@/components/ui/GenderPicker";
 import { CITIES } from "@/types/domain";
 import { professionalSignupSchema, type ProfessionalSignupInput } from "@/lib/validation/auth";
 import { professionalSignupAction } from "../../actions";
@@ -22,6 +23,7 @@ export function ProfessionalSignupForm({ professions }: { professions: string[] 
   const [fileError, setFileError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [isCustomProfession, setIsCustomProfession] = useState(false);
+  const [gender, setGender] = useState<"male" | "female" | "">("");
 
   const {
     register,
@@ -31,6 +33,11 @@ export function ProfessionalSignupForm({ professions }: { professions: string[] 
   } = useForm<TextFields>({
     resolver: zodResolver(professionalSignupSchema.omit({ idFront: true, idBack: true, workPhotos: true })),
   });
+
+  function handleGenderChange(next: "male" | "female") {
+    setGender(next);
+    setValue("gender", next, { shouldValidate: true });
+  }
 
   function handleProfessionSelect(e: React.ChangeEvent<HTMLSelectElement>) {
     if (e.target.value === OTHER_PROFESSION) {
@@ -61,6 +68,7 @@ export function ProfessionalSignupForm({ professions }: { professions: string[] 
     formData.set("email", parsed.data.email);
     formData.set("password", parsed.data.password);
     formData.set("phone", parsed.data.phone);
+    formData.set("gender", parsed.data.gender);
     formData.set("profession", parsed.data.profession);
     formData.set("city", parsed.data.city);
     if (parsed.data.locationUrl) formData.set("locationUrl", parsed.data.locationUrl);
@@ -85,6 +93,7 @@ export function ProfessionalSignupForm({ professions }: { professions: string[] 
         <Input label="البريد الإلكتروني" type="email" placeholder="name@example.com" ltr error={errors.email?.message} {...register("email")} />
         <Input label="كلمة المرور" type="password" placeholder="••••••••" ltr error={errors.password?.message} {...register("password")} />
         <Input label="رقم الهاتف" type="tel" placeholder="09xxxxxxxx" ltr error={errors.phone?.message} {...register("phone")} />
+        <GenderPicker name="gender" value={gender} onChange={handleGenderChange} error={errors.gender?.message} />
 
         <Select label="المهنة" onChange={handleProfessionSelect} defaultValue="">
           <option value="" disabled>اختر المهنة</option>

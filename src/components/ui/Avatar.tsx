@@ -1,4 +1,6 @@
 import { cn } from "@/lib/utils/cn";
+import { FemaleAvatarIllustration, MaleAvatarIllustration } from "./GenderAvatar";
+import type { Gender } from "@/types/domain";
 
 const AVATAR_COLORS = ["#0B6B4A", "#0E7C57", "#146C43", "#0B6B4A"] as const;
 
@@ -17,11 +19,21 @@ export function initials(name: string) {
 interface AvatarProps {
   name: string;
   id: string | number;
+  gender?: Gender | null;
   size?: number;
   className?: string;
 }
 
-export function Avatar({ name, id, size = 48, className }: AvatarProps) {
+export function Avatar({ name, id, gender, size = 48, className }: AvatarProps) {
+  if (gender === "female" || gender === "male") {
+    const Illustration = gender === "female" ? FemaleAvatarIllustration : MaleAvatarIllustration;
+    return (
+      <div className={cn("flex-none overflow-hidden rounded-full", className)} style={{ width: size, height: size }}>
+        <Illustration size={size} />
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(
