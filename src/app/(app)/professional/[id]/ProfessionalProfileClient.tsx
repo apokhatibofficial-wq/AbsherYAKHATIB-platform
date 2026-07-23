@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Avatar } from "@/components/ui/Avatar";
 import { StarRating } from "@/components/ui/StarRating";
 import { useToast } from "@/components/ui/Toast";
@@ -107,8 +108,7 @@ export function ProfessionalProfileClient({
             {professional.galleryPhotoUrls.map((url, i) => (
               <div key={i} className="flex aspect-square items-center justify-center rounded-xl bg-[#F0F2F0]">
                 {url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={url} alt="" className="h-full w-full rounded-xl object-cover" />
+                  <Image src={url} alt="" width={200} height={200} className="h-full w-full rounded-xl object-cover" />
                 ) : (
                   <span className="text-[11px] font-bold text-[#B7BFBB]">لا صورة</span>
                 )}

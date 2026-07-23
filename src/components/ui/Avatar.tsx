@@ -36,7 +36,6 @@ export function Avatar({ name, id, gender, avatarUrl, size = 48, className }: Av
           width={size}
           height={size}
           className="h-full w-full object-cover"
-          unoptimized
         />
       </div>
     );

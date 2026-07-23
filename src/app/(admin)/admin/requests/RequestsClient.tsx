@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 import { approveRequestAction, rejectRequestAction } from "../actions";
@@ -10,8 +11,7 @@ function DocThumb({ url }: { url?: string | null }) {
   return (
     <div className="flex h-[52px] w-[74px] items-center justify-center overflow-hidden rounded-lg border border-dashed border-upload-border bg-[#F0F2F0]">
       {url ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={url} alt="مستند" className="h-full w-full object-cover" />
+        <Image src={url} alt="مستند" width={74} height={52} className="h-full w-full object-cover" />
       ) : (
         <span className="text-[10.5px] font-bold text-text-faint">لا صورة</span>
       )}

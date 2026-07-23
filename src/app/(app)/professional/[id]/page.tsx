@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import { notFound } from "next/navigation";
 import { getProfessionalById, getMyRatingForProfessional } from "@/lib/supabase/queries";
 import { getCurrentUser } from "@/lib/auth/session";
@@ -11,8 +12,14 @@ export default async function ProfessionalProfilePage({ params }: { params: Prom
 
   const myRating = user ? await getMyRatingForProfessional(user.id, id) : null;
 
+  // `cookies()` (inside createClient) must be read during render, not
+  // inside `after` — so build the client now and only defer the RPC call.
   const supabase = await createClient();
-  await supabase.rpc("increment_professional_view", { p_professional_id: id });
+
+  // Don't make every profile view wait on a write nobody's looking at.
+  after(async () => {
+    await supabase.rpc("increment_professional_view", { p_professional_id: id });
+  });
 
   return <ProfessionalProfileClient professional={professional} myRating={myRating} />;
 }

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { getAds } from "@/lib/supabase/queries";
 import { SOCIAL_PLATFORM_LABELS } from "@/lib/ads";
 
@@ -17,8 +18,15 @@ export default async function AdsPage() {
             {ad.imageUrls.length > 0 && (
               <div className="flex gap-1 overflow-x-auto">
                 {ad.imageUrls.map((url, i) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img key={i} src={url} alt={ad.name ?? "إعلان"} className="h-40 w-full flex-none object-cover" />
+                  <div key={i} className="relative h-40 w-full flex-none">
+                    <Image
+                      src={url}
+                      alt={ad.name ?? "إعلان"}
+                      fill
+                      sizes="(max-width: 512px) 100vw, 512px"
+                      className="object-cover"
+                    />
+                  </div>
                 ))}
               </div>
             )}

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { UploadTile } from "@/components/ui/UploadTile";
@@ -151,8 +152,7 @@ export function AdsClient({ initialAds }: { initialAds: Ad[] }) {
             <div key={ad.id} className="flex items-center justify-between gap-3 border-b border-border-light px-5 py-3.5 last:border-b-0">
               <div className="flex items-center gap-3">
                 {ad.imageUrls[0] && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={ad.imageUrls[0]} alt="" className="h-11 w-11 rounded-lg object-cover" />
+                  <Image src={ad.imageUrls[0]} alt="" width={44} height={44} className="h-11 w-11 rounded-lg object-cover" />
                 )}
                 <div>
                   <div className="text-[14px] font-bold text-text-primary">{ad.name || "بدون اسم"}</div>
