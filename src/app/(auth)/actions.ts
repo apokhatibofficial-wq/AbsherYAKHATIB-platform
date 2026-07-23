@@ -156,7 +156,22 @@ export async function attachProfessionalDocumentAction(
   kind: "id_front" | "id_back" | "work_photo",
   path: string
 ): Promise<{ error?: string }> {
+  // This uses the service-role client (no session exists yet during
+  // signup), so it must do its own authorization instead of relying on
+  // RLS: only let a still-pending professional attach a document to their
+  // own storage folder, matching the scope getProfessionalDocUploadUrlAction
+  // already issued the upload URL under.
+  if (!path.startsWith(`${userId}/`)) return { error: "غير مصرح" };
+
   const admin = createAdminClient();
+  const { data: pending } = await admin
+    .from("professional_profiles")
+    .select("id")
+    .eq("id", userId)
+    .eq("status", "pending_review")
+    .maybeSingle();
+  if (!pending) return { error: "غير مصرح" };
+
   const { error } = await admin.from("professional_documents").insert({
     professional_id: userId,
     kind,
